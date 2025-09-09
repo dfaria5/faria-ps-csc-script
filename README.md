@@ -16,8 +16,7 @@ Here lists what each version will do.
 
 Command:
 ```
-<powershell command script with link here>
+irm "<link>" | iex
 ```
 
-Download
-[Lastest release.](https://github.com/dfaria5/faria-ps-utilsetupconf-script/)
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/dfaria5/faria-ps-utilsetupconf-script/latest/total?style=for-the-badge)
