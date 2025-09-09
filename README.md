@@ -4,7 +4,7 @@
 # Faria Powershell Utility Setup Config Script
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance. There are various versions for each porpuse intended whatever is a normal pc, server, etc.
 Here lists what each version will do.
-### Version 2 (Reommended)
+### Version 2 (Recommended)
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Set Ultimate Performance power plan.
 - Disables Microsoft telemetry and unnecessary services that waste cpu usage.
