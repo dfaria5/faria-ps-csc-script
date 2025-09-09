@@ -11,8 +11,7 @@ This script will do the following:
 
 ## How to use
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
-2. Paste and run the comamnd bellow
+2. Paste and run the comamnd bellow or download the script from the [lastest](https://github.com/dfaria5/faria-ps-utilsetupconf-script/) releases.
 ```
 <powershell command script with link here>
 ```
-or download the script from the [lastest](https://github.com/dfaria5/faria-ps-utilsetupconf-script/) releases.
