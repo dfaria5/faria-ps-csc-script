@@ -1,5 +1,5 @@
-[!NOTE]
-This is just my own simple code i use for new installs to put my own settings on windows. And since there is a command for using it with internet, might as well make it public.
+> [!NOTE]
+> This is just my own simple code i use for new installs to put my own settings on windows. And since there is a command for using it with internet, might as well make it public.
 
 # Faria Powershell Utility Setup Config Script
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance.
