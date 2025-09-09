@@ -12,7 +12,10 @@ Here lists what each version will do.
 
 ## How to use
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
-2. Paste and run the comamnd bellow or download the script from the [lastest](https://github.com/dfaria5/faria-ps-utilsetupconf-script/) releases.
+2. Paste and run the comamnd bellow or you can download the script.
+Command:
 ```
 <powershell command script with link here>
 ```
+Download
+[Lastest release.](https://github.com/dfaria5/faria-ps-utilsetupconf-script/)
