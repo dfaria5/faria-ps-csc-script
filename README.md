@@ -1,7 +1,7 @@
 > [!NOTE]
 > This is just my own simple script i use for new installs to put my own settings on windows. And since there is a command for using it with internet, might as well make it public.
 
-# Faria Powershell Utility Setup Config Script
+# :large_blue_diamond: :computer: Faria Powershell Utility Setup Config Script
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance. There are various versions for each porpuse intended whatever is a normal pc, server, etc.
 Here lists what each version will do.
 ### Version 2 (Recommended)
