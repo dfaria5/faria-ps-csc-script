@@ -1,5 +1,6 @@
 > [!NOTE]
 > This is just my own simple script i use for new installs to put my own settings on windows. And since there is a command for using it with internet, might as well make it public.
+
 > [!WARNING]
 > ** THE CURRENT SCRIPT AVAILABLE FOCUSES PRIMARILY ON THE EU VERSION OF WINDOWS AVAILABLE NOT WITH THE US VERSIONS THAT INCLUDE ALL THE THIRD-PARTY BLOAT ** 
 
