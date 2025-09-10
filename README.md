@@ -7,7 +7,7 @@ This is a simple run powershell script for Windows 10 and 11 that cleans and adj
 ## :scroll: Specific Versions
 There are various versions for each porpuse intended whatever is a normal pc, server, etc.
 Here lists what each version will do.
-### Version 2 (Recommended)
+### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Set Ultimate Performance power plan.
 - Disables Microsoft telemetry and unnecessary services that waste cpu usage.
