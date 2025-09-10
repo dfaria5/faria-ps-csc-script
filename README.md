@@ -5,13 +5,14 @@
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance.
 
 ## :scroll: Specific Versions
-There are various versions for each porpuse intended whatever is a normal pc, server, etc.
-Here lists what each version will do.
+Here's what the current script available will do.
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Set Ultimate Performance power plan.
 - Disables Microsoft telemetry and unnecessary services that waste cpu usage.
 - Other custom set Windows preferences. (Classic Desktop Icons, File Explorer Settings, Disable News/Weather Widget)
+
+### More Versions soon.
 
 ## :zap: Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
