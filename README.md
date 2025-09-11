@@ -4,10 +4,10 @@
 > [!WARNING]
 > **THE CURRENT SCRIPT AVAILABLE FOCUSES PRIMARILY ON THE EU VERSIONS OF WINDOWS AVAILABLE NOT WITH THE US VERSIONS THAT INCLUDE ALL THE THIRD-PARTY BLOAT NOT LIKE THE EU VERSIONS**
 
-# Faria Powershell Custom Setup Config Script:large_blue_diamond::computer:
+# Faria Powershell Custom Setup Config Script :large_blue_diamond::computer:
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance.
 
-## :scroll:Specific Versions
+## :scroll: Specific Versions
 Here's what the current script available will do.
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
@@ -17,7 +17,7 @@ Here's what the current script available will do.
 
 ### More Versions soon.
 
-## :zap:Usage
+## :zap: Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
 2. Paste and run the comamnd bellow or you can download the script.
 
