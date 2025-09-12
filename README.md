@@ -26,4 +26,5 @@ Powershell command:
 irm "<link>" | iex
 ```
 Download:
+
 ![Download Lastest Version](https://img.shields.io/github/downloads/dfaria5/faria-ps-utilsetupconf-script/latest/total?style=for-the-badge)
