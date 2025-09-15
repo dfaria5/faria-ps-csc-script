@@ -11,9 +11,15 @@ This is a simple run powershell script for Windows 10 and 11 that cleans and adj
 Here's what the current script available will do.
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
-- Set Ultimate Performance power plan.
-- Disables Microsoft telemetry and unnecessary services that waste cpu usage.
-- Other custom set Windows preferences. (Classic Desktop Icons, File Explorer Settings, Disable News/Weather Widget)
+- Sets ultimate performance power plan.
+- Disables Microsoft telemetry and unnecessary services.
+- Other custom set Windows preferences. (Start Menu, Classic Desktop Icons, File Explorer, Taskbar)
+- Installs essential apps.
+  - 7zip
+  - Java
+  - Notepad++
+  - VLC Media Player
+  - MediaInfoGUI
 
 ### More Versions soon.
 
