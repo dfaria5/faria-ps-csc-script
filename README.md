@@ -12,7 +12,7 @@ Here's what the current script available will do.
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Sets ultimate performance power plan.
-- Disables Microsoft telemetry and unnecessary services.
+- Disables Microsoft telemetry and optimises Windows services.
 - Other custom set Windows preferences. (Start Menu, Classic Desktop Icons, File Explorer, Taskbar)
 - Installs essential apps.
   - 7zip
@@ -31,6 +31,14 @@ Powershell command:
 ```
 irm "<link>" | iex
 ```
-Download:
+Manual Download:
 
 ![Download Lastest Version](https://img.shields.io/github/downloads/dfaria5/faria-ps-utilsetupconf-script/latest/total?style=for-the-badge)
+
+**Note:** If any error ocours blocking the script, use these two commands.
+```
+Set-ExecutionPolicy RemoteSigned -Scope Process
+```
+```
+Unblock-File -Path "<location of the script file downloaded>"
+```
