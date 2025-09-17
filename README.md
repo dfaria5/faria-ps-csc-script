@@ -7,8 +7,12 @@
 # Faria Powershell Custom Setup Config Script :large_blue_diamond::computer:
 This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance.
 
-## :scroll: Specific Versions
+## Script
 Here's what the current script available will do.
+### Supported Windows Versions
+- Windows 11
+- Windows 10
+
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Disables Microsoft telemetry and optimises Windows services.
