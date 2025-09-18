@@ -10,8 +10,10 @@ Here's what the current script available will do.
 ### Current Version
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Disables Microsoft telemetry and optimises Windows services.
-- Other custom set Windows preferences. (Start Menu, Desktop, File Explorer, Taskbar, Power Plan)
-- Installs some apps.
+- Other custom set Windows preferences. (Desktop, File Explorer, Taskbar, Power Plan, Legacy Components)
+- Installs programs.
+  - Microsoft Distributions (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime)
+  - Apple QuickTime (for old apps using its api/code/features)
   - 7zip
   - Java
   - Notepad++
@@ -26,12 +28,6 @@ Here's what the current script available will do.
 Powershell command:
 ```
 irm "<link>" | iex
-```
-Manual Download:
-
-![Download Lastest Version](https://img.shields.io/github/downloads/dfaria5/faria-ps-utilsetupconf-script/latest/total?style=for-the-badge)
-
-**Note:** If any error ocours blocking the script, use these two commands.
 ```
 Set-ExecutionPolicy RemoteSigned -Scope Process
 ```
