@@ -1,0 +1,41 @@
+<LayoutModificationTemplate
+    xmlns="http://schemas.microsoft.com/Start/2016/LayoutModification"
+    Version="1">
+
+	<LayoutOptions StartTileGroupCellWidth="6" />
+
+	<DefaultLayoutOverride>
+		<StartLayoutCollection>
+			<defaultlayout:StartLayout
+				xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout">
+
+				<start:Group Name="General"
+					xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout">
+
+					<!-- User Folder -->
+					<start:DesktopApplicationTile Size="2x2" Column="0" Row="0"
+						DesktopApplicationID="Microsoft.Windows.Explorer"
+						Arguments="::{59031a47-3f72-44a7-89c5-5595fe6b30ee}" />
+
+					<!-- This PC -->
+					<start:DesktopApplicationTile Size="2x2" Column="2" Row="0"
+						DesktopApplicationID="Microsoft.Windows.Explorer"
+						Arguments="::{20D04FE0-3AEA-1069-A2D8-08002B30309D}" />
+
+					<!-- Microsoft Edge -->
+					<start:Tile Size="2x2" Column="4" Row="0"
+						AppUserModelID="Microsoft.MicrosoftEdge_8wekyb3d8bbwe!MicrosoftEdge" />
+
+					<!-- Microsoft Store -->
+					<start:Tile Size="2x2" Column="0" Row="2"
+						AppUserModelID="Microsoft.WindowsStore_8wekyb3d8bbwe!App" />
+
+					<!-- Settings -->
+					<start:Tile Size="2x2" Column="2" Row="2"
+						AppUserModelID="windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel" />
+
+				</start:Group>
+			</defaultlayout:StartLayout>
+		</StartLayoutCollection>
+	</DefaultLayoutOverride>
+</LayoutModificationTemplate>
