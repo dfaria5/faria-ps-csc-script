@@ -11,12 +11,11 @@ Here's what the current script available will do.
 - Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
 - Disables Microsoft telemetry and optimises Windows services.
 - Other custom set Windows preferences. (Start Menu, Desktop, File Explorer, Taskbar, Power Plan)
-- Installs essential apps.
+- Installs some apps.
   - 7zip
   - Java
   - Notepad++
   - VLC Media Player
-  - MediaInfoGUI
 
 ### More Versions soon.
 
