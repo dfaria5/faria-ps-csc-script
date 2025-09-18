@@ -1,11 +1,5 @@
-> [!NOTE]
-> This is just my own simple script i use for new installs to put my own settings on windows. And since there is a command for using it with internet, might as well make it public.
-
-> [!WARNING]
-> **The current script was worked primarily with the EU versions of Windows**
-
-# Faria Powershell Custom Setup Config Script :large_blue_diamond::computer:
-This is a simple run powershell script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs for better performance.
+## Faria Powershell Custom Setup Config Script
+Simple run powershell custom config script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs.
 
 ## Script
 Here's what the current script available will do.
@@ -26,7 +20,7 @@ Here's what the current script available will do.
 
 ### More Versions soon.
 
-## :zap: Usage
+## Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
 2. Paste and run the comamnd bellow or you can download the script.
 
