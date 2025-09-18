@@ -29,8 +29,3 @@ Powershell command:
 ```
 irm "<link>" | iex
 ```
-Set-ExecutionPolicy RemoteSigned -Scope Process
-```
-```
-Unblock-File -Path "<location of the script file downloaded>"
-```
