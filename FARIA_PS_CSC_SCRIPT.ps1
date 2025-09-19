@@ -432,16 +432,16 @@ if ($tweakGeneralExplorerAndOther) {
     foreach ($iconGuid in $desktopIcons.Keys) {
         Set-ItemProperty -Path $regPath -Name $iconGuid -Value $desktopIcons[$iconGuid] -Type DWord
     }
-	
+
 	# Desktop icons size
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "Shell Icon Size" -Value "53"
-	
+
 	# Windows text size
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Win8DpiScaling" -Value 1
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Win8DpiScaling" -Value 0
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "LogPixels" -Type DWord -Value 106
-	
+
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
-	
+
 	# Disable News/Weather Widget (Windows 10)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -Value 2 -Type DWord
 
@@ -451,28 +451,33 @@ if ($tweakGeneralExplorerAndOther) {
 	# Extra policy enforcement for News/Weather Widget
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
-	
+
 	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
-	
+
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
-	
+
 	# Taskbar search display set to icon (Windows 10)
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -Type DWord
-	
+
 	# Taskbar search display set to icon (Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarSearchMode" -Value 1 -Type DWord
-	
-	# Taskbar Start Button, Pinned and Opened Apps, Search Filed Bar set alignment to the left (Only on Windows 11)
+
+	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
+
+	# Restore right-click old context menu
+	if (Test-Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32") {
+		Remove-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Recurse -Force -ErrorAction SilentlyContinue
+	}
 
     # Restart explorer.exe to apply changes
 	Write-Host "Status: Restarting Explorer..." -ForegroundColor Yellow
     Stop-Process -Name explorer -Force
     Start-Sleep -Seconds 2
     Start-Process explorer.exe
-	
+
 	# Enable DirectPlay. This is for some old games (for example: GTA San Andreas)
 	Write-Host "Status: Enabling legacy feature 'DirectPlay'..." -ForegroundColor Yellow
 	try {
