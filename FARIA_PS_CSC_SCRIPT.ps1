@@ -135,7 +135,6 @@ if ($removeApps) {
 		$reg = Get-OneDriveUninstallInfo
 		if ($reg) { return $true }
 
-		# Fallback: check exact Store package names only (avoid wildcard false-positives)
 		$appx = Get-AppxPackage -AllUsers -Name "Microsoft.OneDrive" -ErrorAction SilentlyContinue
 		if (-not $appx) {
 			$appx = Get-AppxPackage -AllUsers -Name "Microsoft.OneDriveSync" -ErrorAction SilentlyContinue
@@ -144,18 +143,14 @@ if ($removeApps) {
 	}
 
 	function Invoke-OneDriveUninstall {
-		# Prefer the classic uninstall entry if present
 		$entry = Get-OneDriveUninstallInfo
 		if ($entry -and $entry.UninstallString) {
 			Write-Host "Status: Uninstalling OneDrive..." -ForegroundColor Yellow
 
-			# UninstallString may contain quotes and params; execute properly
 			$cmdLine = $entry.UninstallString
-			# If it's MSIEXEC, run directly; otherwise Start-Process with parsed exe/args
 			if ($cmdLine -match 'msiexec') {
 				Start-Process -FilePath "cmd.exe" -ArgumentList "/c $cmdLine" -Wait -NoNewWindow
 			} else {
-				# Split exe and args safely
 				$exe  = $cmdLine
 				$args = ""
 				if ($cmdLine -match '^\s*\"([^"]+)\"\s*(.*)$') { $exe=$matches[1]; $args=$matches[2] }
@@ -165,7 +160,6 @@ if ($removeApps) {
 			return
 		}
 
-		# Otherwise, try the system setup stubs (only if present)
 		$oneDriveSetup = @(
 			"$env:SystemRoot\SysWOW64\OneDriveSetup.exe",
 			"$env:SystemRoot\System32\OneDriveSetup.exe"
@@ -183,7 +177,6 @@ if ($removeApps) {
     if (Test-OneDriveInstalled) {
         Invoke-OneDriveUninstall
 
-        # Cleanup leftovers (safe even if already gone)
         $folders = @(
             "$env:UserProfile\OneDrive",
             "$env:LocalAppData\Microsoft\OneDrive",
@@ -231,18 +224,18 @@ if ($manageServices) {
     # Services set to disable.
 	$servicesToDisable = @(
 		"DiagTrack",             # Connected User Experiences and Telemetry
-		"dmwappushservice",      # WAP Push Messaging (telemetry pipe)
+		"dmwappushservice",      # WAP Push Messaging
 		"RetailDemo",            # Retail Demo Service
 		"WMPNetworkSvc",         # Windows Media Player Network Sharing
 		"Fax",                   # Fax service
 		"MapsBroker",            # Downloaded Maps Manager
 		"MessagingService",      # SMS Routing
-		"PhoneSvc",              # Phone Service (Continuity, not needed on desktops)
-		"PrintNotify",           # Printer Notifications (disable if no printer ever used)
-		"RemoteAccess",          # Routing and Remote Access (VPN/RRAS, rare)
+		"PhoneSvc",              # Phone Service
+		"PrintNotify",           # Printer Notifications
+		"RemoteAccess",          # Routing and Remote Access
 		"RemoteRegistry",        # Security risk
 		"SharedAccess",          # Internet Connection Sharing
-		"Spooler",               # Print Spooler (disable if no printer at all)
+		"Spooler",               # Print Spooler
 		"WalletService",         # Microsoft Wallet
 		"wisvc"                  # Windows Insider Service
 	)
@@ -265,7 +258,7 @@ if ($manageServices) {
 		"TabletInputService",    # Touch/pen input
 		"DiagSvc",               # Diagnostic Execution
 		"wercplsupport",         # Problem Reports
-		"WSearch",               # Windows Search (manual keeps it available)
+		"WSearch",               # Windows Search
 		"TermService",           # Remote Desktop Services
 		"BTAGService",           # Bluetooth Audio Gateway
 		"BthAvctpSvc",           # Bluetooth Audio/Video
@@ -275,7 +268,7 @@ if ($manageServices) {
 		"NgcSvc",                # Microsoft Passport
 		"SEMgrSvc",              # Payments and NFC
 		"SmsRouter",             # SMS Routing
-		"stisvc",                # Windows Image Acquisition (scanners/cameras)
+		"stisvc",                # Windows Image Acquisition
 		"WbioSrvc",              # Biometrics
 		"WpnService",            # Windows Push Notifications
 		"WpnUserService"         # Notifications per-user
@@ -319,15 +312,12 @@ if ($setPowerPlanUltimate) {
     }
 
     function New-UltimateFromTemplate {
-        # Create from template and reliably capture the NEW GUID by diffing plan lists
         $before = Get-PowerSchemeGuids
         $dupOut = powercfg -duplicatescheme $templateGUID 2>&1
         $after  = Get-PowerSchemeGuids
 
-        # Find the GUID that wasn't in the list before
         $new = $after | Where-Object { $before -notcontains $_ } | Select-Object -First 1
         if (-not $new) {
-            # Fallback: parse directly from command output just in case
             $m = ($dupOut | Select-String -Pattern '([0-9A-Fa-f\-]{36})' | Select-Object -First 1)
             if ($m) { $new = $m.Matches[0].Value.ToLower() }
         }
@@ -335,7 +325,6 @@ if ($setPowerPlanUltimate) {
         return $new
     }
 
-    # Try registry, but only trust it if the plan still exists
     $saved = $null
     if (Test-Path $regPath) {
         $saved = (Get-ItemProperty -Path $regPath -Name $regName -ErrorAction SilentlyContinue).$regName
@@ -354,7 +343,6 @@ if ($setPowerPlanUltimate) {
             Write-Host "Status: No registry GUID found. Ensuring plan exists..." -ForegroundColor Yellow
         }
 
-        # If the Microsoft template already exists as a user plan, just use that
         if ($existing -contains $templateGUID) {
             $ultimateGUID = $templateGUID
             Write-Host "Status: Found existing Ultimate Performance plan from template GUID." -ForegroundColor Yellow
@@ -367,7 +355,6 @@ if ($setPowerPlanUltimate) {
             }
         }
 
-        # Save (or update) registry
         if ($ultimateGUID) {
             if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
             Set-ItemProperty -Path $regPath -Name $regName -Value $ultimateGUID
@@ -410,6 +397,72 @@ if ($setPowerPlanUltimate) {
 # ========================
 if ($tweakGeneralExplorerAndOther) {
     Write-Host "Status: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
+	
+	# Define repo paths (adjust to your GitHub repo raw URLs)
+	# $repoBase = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/main/layouts"
+
+	$win10LayoutUrl = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/files/Win10/W10SFPCSCSL.xml"
+	$win11LayoutUrl = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/files/Win11/start2.bin"
+
+	# Detect Windows version
+	$osVersion = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
+
+	Write-Host "Detected OS: $osVersion" -ForegroundColor Cyan
+
+	if ($osVersion -like "*Windows 10*") {
+		Write-Host "Applying Windows 10 Start Menu layout..." -ForegroundColor Green
+
+		$defaultUserShellPath = "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell"
+		$currentUserShellPath = "$env:LOCALAPPDATA\Microsoft\Windows\Shell"
+
+		# Ensure dirs exist
+		foreach ($path in @($defaultUserShellPath, $currentUserShellPath)) {
+			if (-not (Test-Path $path)) {
+				New-Item -Path $path -ItemType Directory -Force | Out-Null
+			}
+		}
+
+		# Download LayoutModification.xml
+		$destFile = Join-Path $currentUserShellPath "LayoutModification.xml"
+		Invoke-WebRequest -Uri $win10LayoutUrl -OutFile $destFile -UseBasicParsing
+
+		# Also copy to Default user (new accounts)
+		Copy-Item $destFile (Join-Path $defaultUserShellPath "LayoutModification.xml") -Force
+
+		# Clear cache
+		Remove-Item "$env:LOCALAPPDATA\TileDataLayer" -Recurse -Force -ErrorAction SilentlyContinue
+		Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\CloudStore" -Recurse -Force -ErrorAction SilentlyContinue
+
+		# Restart Start Menu
+		Get-Process StartMenuExperienceHost -ErrorAction SilentlyContinue | Stop-Process -Force
+
+		Write-Host "Status: Windows 10 Start Menu layout applied."
+
+	}
+	elseif ($osVersion -like "*Windows 11*") {
+		Write-Host "Applying Windows 11 Start Menu layout..." -ForegroundColor Green
+
+		$startBinPath = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
+		if (-not (Test-Path $startBinPath)) {
+			New-Item -Path $startBinPath -ItemType Directory -Force | Out-Null
+		}
+
+		$destFile = Join-Path $startBinPath "start2.bin"
+
+		# Download start2.bin
+		Invoke-WebRequest -Uri $win11LayoutUrl -OutFile $destFile -UseBasicParsing -Force
+
+		# Clear CloudStore cache
+		Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\CloudStore" -Recurse -Force -ErrorAction SilentlyContinue
+
+		# Restart Start Menu
+		Get-Process StartMenuExperienceHost -ErrorAction SilentlyContinue | Stop-Process -Force
+
+		Write-Host "Status: Windows 11 Start Menu layout applied."
+	}
+	else {
+		Write-Warning "Unsupported OS detected. This script is for Windows 10/11 only."
+	}
 
     # Basic Explorer tweaks
 	Write-Host "Status: Configuring file explorer settings..." -ForegroundColor Yellow
@@ -417,7 +470,7 @@ if ($tweakGeneralExplorerAndOther) {
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Hidden -Value 1
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name LaunchTo -Value 1
 
-    # Desktop icons registry keys with correct names and values (0 = show icon)
+    # Desktop icons
 	Write-Host "Status: Configuring desktop settings..." -ForegroundColor Yellow
     $desktopIcons = @{
 		"{59031a47-3f72-44a7-89c5-5595fe6b30ee}" = 0  # User's Files Folder
@@ -554,7 +607,7 @@ if ($installapps) {
     }
 }
 
-Write-Host "`nScript completed! Its recommended to restart Windows." -ForegroundColor Green
+Write-Host "`nScript completed! Its recommended to restart Windows for all settings to be applied." -ForegroundColor Green
 $restart = Read-Host "Do you want to restart your PC now? (Y/N): "
 
 if ($restart -match '^[Yy]$') {
