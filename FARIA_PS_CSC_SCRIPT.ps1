@@ -300,7 +300,7 @@ if ($manageServices) {
 		"SharedAccess",          	# Internet Connection Sharing
 		"Spooler",               	# Print Spooler
 		"WalletService",			# Microsoft Wallet
-		"wisvc",        			# Insider Service
+		"wisvc"        				# Insider Service
 	)
 
 	# Apply Manual
@@ -590,4 +590,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Restart skipped." -ForegroundColor Green
+
 }
