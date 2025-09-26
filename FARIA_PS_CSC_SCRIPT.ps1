@@ -98,7 +98,7 @@ if ($removeApps) {
 		# Remove for current user
 		Get-AppxPackage -Name $app | Remove-AppxPackage -ErrorAction SilentlyContinue | Out-Null
     }
-	
+
 	# Remove any leftovers.
 	Write-Host "Status: Removing any leftovers from bloat apps..." -ForegroundColor Yellow
 	# Microsoft Teams
@@ -113,7 +113,7 @@ if ($removeApps) {
 	# Linkedin
 	Get-AppxPackage -AllUsers -Name "LinkedInforWindows" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
     Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*LinkedIn*" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
-	
+
 	# OneDrive
 	Write-Host "Status: Checking for OneDrive installation..." -ForegroundColor Yellow
 	function Get-OneDriveUninstallInfo {
@@ -221,72 +221,103 @@ if ($disableTelemetry) {
 if ($manageServices) {
     Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
 
-    # Services set to disable.
-	$servicesToDisable = @(
-		"DiagTrack",             # Connected User Experiences and Telemetry
-		"dmwappushservice",      # WAP Push Messaging
-		"RetailDemo",            # Retail Demo Service
-		"WMPNetworkSvc",         # Windows Media Player Network Sharing
-		"Fax",                   # Fax service
-		"MapsBroker",            # Downloaded Maps Manager
-		"MessagingService",      # SMS Routing
-		"PhoneSvc",              # Phone Service
-		"PrintNotify",           # Printer Notifications
-		"RemoteAccess",          # Routing and Remote Access
-		"RemoteRegistry",        # Security risk
-		"SharedAccess",          # Internet Connection Sharing
-		"Spooler",               # Print Spooler
-		"WalletService",         # Microsoft Wallet
-		"wisvc"                  # Windows Insider Service
+    # Services set to manual (safe so the service will only start when it actually needs it)
+	$manualServices = @(
+		"SysMain",               		# Superfetch/Prefetch
+		"TrkWks",                		# Distributed Link Tracking
+		"TabletInputService",    		# Touch/pen input
+		"DiagSvc",               		# Diagnostic Execution
+		"wercplsupport",         		# Problem Reports
+		"BTAGService",           		# Bluetooth Audio Gateway
+		"BthAvctpSvc",           		# Bluetooth Audio/Video
+		"bthserv",               		# Core Bluetooth
+		"NgcCtnrSvc",            		# Microsoft Passport Container
+		"NgcSvc",                		# Microsoft Passport
+		"WpnService",            		# Windows Push Notifications
+		"WpnUserService"         		# Notifications per-user
+		"AxInstSV",     				# ActiveX Installer
+		"BDESVC",       				# BitLocker Drive Encryption
+		"tcsd",         				# Cellular Time (sometimes 'tzautoupdate')
+		"CertPropSvc",  				# Certificate Propagation
+		"CldFlt",       				# Cloud Backup/Restore
+		"CDPUserSvc*",  				# Connected Devices Platform
+		"PimIndexMaintenanceSvc*", 		# Contact Data
+		"lfsvc",        				# Geolocation
+		"SmsRouter",    				# SMS Router
+		"Netlogon",     				# Netlogon (not in workgroup)
+		"WpcMonSvc",    				# Parental Controls
+		"SEMgrSvc",     				# Payments & NFC
+		"PrintWorkflowUserSvc*", 		# Print Device Config
+		"QWAVE",        				# Quality Windows Audio Video Experience
+		"RmSvc",        				# Radio Management
+		"RasAuto",      				# Remote Access Auto Connection
+		"RasMan",       				# Remote Access Connection Manager
+		"TermService",  				# Remote Desktop Services
+		"SessionEnv",   				# RDS Config
+		"UmRdpService", 				# RDS Redirector
+		"seclogon",     				# Secondary Logon
+		"SensorDataService",
+		"SensrSvc",     				# Sensor Monitoring
+		"SensorService",
+		"LanmanServer",					# Server
+		"shpamsvc",     				# Shared PC Account Manager
+		"SCardSvr",     				# Smart Card
+		"ScDeviceEnum", 				# Smart Card Device Enum
+		"SCPolicySvc",  				# Smart Card Removal Policy
+		"lmhosts",      				# TCP/IP NetBIOS Helper
+		"TapiSrv",      				# Telephony
+		"vds",          				# Virtual Disk
+		"VSS",          				# Volume Shadow Copy
+		"sdclt",        				# Windows Backup
+		"WbioSrvc",     				# Biometric
+		"FrameServer",  				# Camera Frame Server
+		"Wcncsvc",      				# Windows Connect Now
+		"stisvc",       				# WIA (Scanner service)
+		"icssvc",       				# Mobile Hotspot
+		"WinRM",        				# Windows Remote Management
+		"WSearch",      				# Search Indexing
+		"WorkFoldersSvc",
+		"WwanSvc",       				# WWAN AutoConfig
+		"XblAuthManager",
+		"XblGameSave",
+		"XboxGipSvc",
+		"XboxNetApiSvc"
 	)
 
-    foreach ($svc in $servicesToDisable) {
-        if (Get-Service -Name $svc -ErrorAction SilentlyContinue) {
-            try {
-                Stop-Service $svc -Force -ErrorAction SilentlyContinue
-                Set-Service $svc -StartupType Disabled
-            } catch {
-				Write-Warning "Status: Failed to set Service to Disabled $_"
-			}
-        }
-    }
-
-    # Services to set to Manual. (Safe so the service will only start when it actually needs it)
-	$servicesToManual = @(
-		"SysMain",               # Superfetch/Prefetch
-		"TrkWks",                # Distributed Link Tracking
-		"TabletInputService",    # Touch/pen input
-		"DiagSvc",               # Diagnostic Execution
-		"wercplsupport",         # Problem Reports
-		"WSearch",               # Windows Search
-		"TermService",           # Remote Desktop Services
-		"BTAGService",           # Bluetooth Audio Gateway
-		"BthAvctpSvc",           # Bluetooth Audio/Video
-		"bthserv",               # Core Bluetooth
-		"lfsvc",                 # Geolocation
-		"NgcCtnrSvc",            # Microsoft Passport Container
-		"NgcSvc",                # Microsoft Passport
-		"SEMgrSvc",              # Payments and NFC
-		"SmsRouter",             # SMS Routing
-		"stisvc",                # Windows Image Acquisition
-		"WbioSrvc",              # Biometrics
-		"WpnService",            # Windows Push Notifications
-		"WpnUserService"         # Notifications per-user
-		"XblAuthManager",        # Xbox Live Auth
-		"XblGameSave",           # Xbox Live Game Save
-		"XboxNetApiSvc",         # Xbox Networking
-		"XboxGipSvc"             # Xbox Accessory Management
+	# Services set to disable (no need for these since they do nothing and they are just bloat and waste cpu usage)
+	$disableServices = @(
+		"DiagTrack",				# Connected User Experiences and Telemetry
+		"dmwappushservice",     	# WAP Push Messaging
+		"RetailDemo",   			# Retail Demo
+		"WMPNetworkSvc",			# WMP Network Sharing
+		"Fax",                   	# Fax service
+		"MapsBroker",   			# Downloaded Maps Manager
+		"MessagingService",      	# SMS Routing
+		"PhoneSvc",     			# Phone Service
+		"PrintNotify",           	# Printer Notifications
+		"RemoteAccess",          	# Routing and Remote Access
+		"RemoteRegistry", 			# Security risk
+		"SharedAccess",          	# Internet Connection Sharing
+		"Spooler",               	# Print Spooler
+		"WalletService",			# Microsoft Wallet
+		"wisvc",        			# Insider Service
 	)
 
-    foreach ($svc in $servicesToManual) {
-        if (Get-Service -Name $svc -ErrorAction SilentlyContinue) {
-            try {
-                Set-Service $svc -StartupType Manual
-            } catch {
-				Write-Warning "Status: Failed to set Service to Manual $_"
-			}
-        }
-    }
+	# Apply Manual
+	foreach ($svc in $manualServices) {
+		try {
+			Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
+			Write-Host "Status: Set $svc to Manual" -ForegroundColor Yellow
+		} catch { Write-Warning "Could not change $svc ($_)" }
+	}
+
+	# Apply Disabled
+	foreach ($svc in $disableServices) {
+		try {
+			Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
+			Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
+		} catch { Write-Warning "Could not change $svc ($_)" }
+	}
 }
 
 # ========================
@@ -397,72 +428,6 @@ if ($setPowerPlanUltimate) {
 # ========================
 if ($tweakGeneralExplorerAndOther) {
     Write-Host "Status: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
-	
-	# Define repo paths (adjust to your GitHub repo raw URLs)
-	# $repoBase = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/main/layouts"
-
-	$win10LayoutUrl = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/files/Win10/W10SFPCSCSL.xml"
-	$win11LayoutUrl = "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/files/Win11/start2.bin"
-
-	# Detect Windows version
-	$osVersion = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductName
-
-	Write-Host "Detected OS: $osVersion" -ForegroundColor Cyan
-
-	if ($osVersion -like "*Windows 10*") {
-		Write-Host "Applying Windows 10 Start Menu layout..." -ForegroundColor Green
-
-		$defaultUserShellPath = "C:\Users\Default\AppData\Local\Microsoft\Windows\Shell"
-		$currentUserShellPath = "$env:LOCALAPPDATA\Microsoft\Windows\Shell"
-
-		# Ensure dirs exist
-		foreach ($path in @($defaultUserShellPath, $currentUserShellPath)) {
-			if (-not (Test-Path $path)) {
-				New-Item -Path $path -ItemType Directory -Force | Out-Null
-			}
-		}
-
-		# Download LayoutModification.xml
-		$destFile = Join-Path $currentUserShellPath "LayoutModification.xml"
-		Invoke-WebRequest -Uri $win10LayoutUrl -OutFile $destFile -UseBasicParsing
-
-		# Also copy to Default user (new accounts)
-		Copy-Item $destFile (Join-Path $defaultUserShellPath "LayoutModification.xml") -Force
-
-		# Clear cache
-		Remove-Item "$env:LOCALAPPDATA\TileDataLayer" -Recurse -Force -ErrorAction SilentlyContinue
-		Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\CloudStore" -Recurse -Force -ErrorAction SilentlyContinue
-
-		# Restart Start Menu
-		Get-Process StartMenuExperienceHost -ErrorAction SilentlyContinue | Stop-Process -Force
-
-		Write-Host "Status: Windows 10 Start Menu layout applied."
-
-	}
-	elseif ($osVersion -like "*Windows 11*") {
-		Write-Host "Applying Windows 11 Start Menu layout..." -ForegroundColor Green
-
-		$startBinPath = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
-		if (-not (Test-Path $startBinPath)) {
-			New-Item -Path $startBinPath -ItemType Directory -Force | Out-Null
-		}
-
-		$destFile = Join-Path $startBinPath "start2.bin"
-
-		# Download start2.bin
-		Invoke-WebRequest -Uri $win11LayoutUrl -OutFile $destFile -UseBasicParsing -Force
-
-		# Clear CloudStore cache
-		Remove-Item "$env:LOCALAPPDATA\Microsoft\Windows\CloudStore" -Recurse -Force -ErrorAction SilentlyContinue
-
-		# Restart Start Menu
-		Get-Process StartMenuExperienceHost -ErrorAction SilentlyContinue | Stop-Process -Force
-
-		Write-Host "Status: Windows 11 Start Menu layout applied."
-	}
-	else {
-		Write-Warning "Unsupported OS detected. This script is for Windows 10/11 only."
-	}
 
     # Basic Explorer tweaks
 	Write-Host "Status: Configuring file explorer settings..." -ForegroundColor Yellow
@@ -501,14 +466,17 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Type DWord
 
 	# Extra policy enforcement for News/Weather Widget
-	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
+	#New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
+	#Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
 
-	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
+	#New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
+	#Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
 
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
+	
+	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
 
 	# Taskbar search display set to icon (Windows 10)
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -Type DWord
@@ -523,6 +491,13 @@ if ($tweakGeneralExplorerAndOther) {
 	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" -Force | Out-Null
 	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Force | Out-Null
 	Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Name "(default)" -Value "" -Force
+	
+	# Show Windows build at the bottom right of the desktop
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
+
+	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
+    New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
 
     # Restart explorer.exe to apply changes
 	Write-Host "Status: Restarting Explorer..." -ForegroundColor Yellow
