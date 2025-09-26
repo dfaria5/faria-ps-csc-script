@@ -434,6 +434,16 @@ if ($tweakGeneralExplorerAndOther) {
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name HideFileExt -Value 0
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Hidden -Value 1
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name LaunchTo -Value 1
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name NavPaneShowLibraries -Value 1 -Type DWord
+	
+	# Check "Allow files on this drive to have contents indexed in addition to file properties" option in the properties of the Windows local drive
+	$drive = Get-WmiObject -Class Win32_Volume -Filter "DriveLetter = 'C:'"
+	if ($drive) {
+		$drive.IndexingEnabled = $true
+		$drive.Put() | Out-Null
+	} else {
+		Write-Warning "Could not find C: drive object"
+	}
 
     # Desktop icons
 	Write-Host "Status: Configuring desktop settings..." -ForegroundColor Yellow
@@ -450,12 +460,33 @@ if ($tweakGeneralExplorerAndOther) {
     foreach ($iconGuid in $desktopIcons.Keys) {
         Set-ItemProperty -Path $regPath -Name $iconGuid -Value $desktopIcons[$iconGuid] -Type DWord
     }
+	
+	# --- Detect Windows version and pick default wallpaper ---
+	$winVer = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+
+	if ($winVer -ge 22000) {
+		# Windows 11 default
+		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+	}
+	else {
+		# Windows 10 default
+		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+	}
+
+	# --- Apply wallpaper ---
+	$regPath = "HKCU:\Control Panel\Desktop"
+	Set-ItemProperty -Path $regPath -Name Wallpaper -Value $wallpaperPath
+	Set-ItemProperty -Path $regPath -Name WallpaperStyle -Value 10   # Fill
+	Set-ItemProperty -Path $regPath -Name TileWallpaper -Value 0
 
 	# Desktop icons size
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop" -Name "IconSize" -Type DWord -Value 53
 
 	# Windows text size
 	Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility" -Name "TextScaleFactor" -Type DWord -Value 115
+	
+	# Refresh desktop
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -466,17 +497,19 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Type DWord
 
 	# Extra policy enforcement for News/Weather Widget
-	#New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	#Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
-
-	#New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	#Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
+	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
+	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
 
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
-	
 	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
+
+
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord
+	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord
 
 	# Taskbar search display set to icon (Windows 10)
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -Type DWord
@@ -590,5 +623,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Restart skipped." -ForegroundColor Green
-
 }
