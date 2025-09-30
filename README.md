@@ -25,7 +25,9 @@ Here's what the current script available will do.
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
 2. Paste and run the comamnd bellow or you can download the script.
 
-Powershell command:
+```
+irm "https://dfaria5.github.io/ps-csc-script/FARIA_PS_CSC_SCRIPT.ps1" | iex
+```
 ```
 irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/FARIA_PS_CSC_SCRIPT.ps1" | iex
 ```
