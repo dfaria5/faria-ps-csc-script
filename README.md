@@ -27,7 +27,7 @@ Here's what the current script available will do.
 
 **Powershell Command**
 ```
-irm "https://dfaria5.github.io/ps-csc-script/files/scripts/FARIA_PS_CSC_SCRIPT.ps1" | iex
+irm "https://dfaria5.github.io/files/scripts/FARIA_PS_CSC_SCRIPT.ps1" | iex
 ```
 (if the command above doesnt work, try this one instead)
 ```
