@@ -462,9 +462,9 @@ if ($tweakGeneralExplorerAndOther) {
     }
 	
 	# --- Detect Windows version and pick default wallpaper ---
-	$winVer = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
 
-	if ($winVer -ge 22000) {
+	if ($winBuild -ge 22000) {
 		# Windows 11 default
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
 	}
@@ -473,11 +473,18 @@ if ($tweakGeneralExplorerAndOther) {
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
 	}
 
-	# --- Apply wallpaper ---
-	$regPath = "HKCU:\Control Panel\Desktop"
-	Set-ItemProperty -Path $regPath -Name Wallpaper -Value $wallpaperPath
-	Set-ItemProperty -Path $regPath -Name WallpaperStyle -Value 10   # Fill
-	Set-ItemProperty -Path $regPath -Name TileWallpaper -Value 0
+	# --- Registry paths for personalization ---
+	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+
+	# Set wallpaper
+	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
+	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10   # Fill
+	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
+
+	# Force "Picture" mode (instead of Spotlight)
+	# 1 = Picture, 2 = Solid color, 3 = Slideshow, 4 = Windows Spotlight
+	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
 
 	# Desktop icons size
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop" -Name "IconSize" -Type DWord -Value 53
