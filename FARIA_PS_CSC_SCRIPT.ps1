@@ -435,7 +435,7 @@ if ($tweakGeneralExplorerAndOther) {
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Hidden -Value 1
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name LaunchTo -Value 1
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name NavPaneShowLibraries -Value 1 -Type DWord
-	
+
 	# Check "Allow files on this drive to have contents indexed in addition to file properties" option in the properties of the Windows local drive
 	$drive = Get-WmiObject -Class Win32_Volume -Filter "DriveLetter = 'C:'"
 	if ($drive) {
@@ -455,15 +455,20 @@ if ($tweakGeneralExplorerAndOther) {
         "{645FF040-5081-101B-9F08-00AA002F954E}" = 0  # Recycle Bin
     }
 
-    $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel"
-
     foreach ($iconGuid in $desktopIcons.Keys) {
-        Set-ItemProperty -Path $regPath -Name $iconGuid -Value $desktopIcons[$iconGuid] -Type DWord
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name $iconGuid -Value $desktopIcons[$iconGuid] -Type DWord
     }
-	
-	# --- Detect Windows version and pick default wallpaper ---
-	$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
 
+	# Restore right-click old context menu
+	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" -Force | Out-Null
+	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Force | Out-Null
+	Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Name "(default)" -Value "" -Force
+
+	# Show Windows build at the bottom right of the desktop
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
+
+	# Detect Windows version and pick default wallpaper
+	$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
 	if ($winBuild -ge 22000) {
 		# Windows 11 default
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
@@ -473,27 +478,26 @@ if ($tweakGeneralExplorerAndOther) {
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
 	}
 
-	# --- Registry paths for personalization ---
+	# Registry paths for personalization
 	$desktopReg = "HKCU:\Control Panel\Desktop"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
-	# Set wallpaper
-	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10   # Fill
-	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-
-	# Force "Picture" mode (instead of Spotlight)
-	# 1 = Picture, 2 = Solid color, 3 = Slideshow, 4 = Windows Spotlight
+	# Background type set to 'Picture'
 	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
+	
+	# Set wallpaper picture (test)
+	# Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
+	# Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10   # Fill
+	# Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
 
 	# Desktop icons size
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop" -Name "IconSize" -Type DWord -Value 53
+	# Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop" -Name "IconSize" -Type DWord -Value 53
 
 	# Windows text size
-	Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility" -Name "TextScaleFactor" -Type DWord -Value 115
-	
+	# Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility" -Name "TextScaleFactor" -Type DWord -Value 115
+
 	# Refresh desktop
-	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	# RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -514,7 +518,6 @@ if ($tweakGeneralExplorerAndOther) {
 	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
 
-
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord
 
@@ -523,17 +526,13 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Taskbar search display set to icon (Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarSearchMode" -Value 1 -Type DWord
+	
+	# Enable "End task" in app right-click menu taskbar (Windows 11 22H2+)
+	New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings" -Force | Out-Null
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings" -Name TaskbarEndTask -Type DWord -Value 1
 
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
-
-	# Restore right-click old context menu
-	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" -Force | Out-Null
-	New-Item -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Force | Out-Null
-	Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Name "(default)" -Value "" -Force
-	
-	# Show Windows build at the bottom right of the desktop
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
