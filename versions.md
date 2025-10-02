@@ -20,6 +20,8 @@ This text file includes all the details and configurations about each version of
     - Aligment to the left. (Windows 11 only)
   - Power options.
     - Power plan set to Ultimate Performance.
+    - Timeouts set to never.
+    - Disable hard disk turning off by setting the value to 0.
   - Enables legacy component DirectPlay.
 - Installs programs.
   - Microsoft Distributions (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime)
