@@ -1,4 +1,4 @@
-## Faria Powershell Custom Setup Config Script
+## Faria Powershell Custom Setup Config Script [WIP]
 Simple run powershell custom config script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs.
 
 ## Script
