@@ -7,19 +7,16 @@ Here's what the current script available will do.
 - Windows 11
 - Windows 10
 
-### Current Version
-- Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
-- Disables Microsoft telemetry and optimises Windows services.
-- Other custom set Windows preferences. (Desktop, File Explorer, Taskbar, Power Plan, Legacy Components)
-- Installs programs.
-  - Microsoft Distributions (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime)
-  - Apple QuickTime (for old apps using its api/code/features)
-  - 7zip
-  - Java
-  - Notepad++
-  - VLC Media Player
+### Versions (Only Essential available for now)
+|  | Full Clean | Essential | Personal Rig |
+| --- | --- | --- | --- |
+| Uninstall Bloat | Yes :heavy_check_mark: | Partially :grey_exclamation: (MS Store and Xbox App remain) | Partially :grey_exclamation: (*same as Essential*) |
+| Disable Microsoft Telemetry | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
+| Optimize Services | Yes :heavy_check_mark: | Partially :grey_exclamation: (Services from MS Store and Xbox App are set to Manual) | Partially :grey_exclamation: (*same as Essential*) |
+| Custom Set Preferences | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
+| Installs Apps | No :x: | Yes :heavy_check_mark: (MS Distributions, QuickTime, 7zip, Java, Notepad++, VLC) | Yes :heavy_check_mark: (*same as Essential*, plus Firefox, Steam, Teamspeak, Discord) |
 
-### More Versions soon.
+See full details about each version **here**.
 
 ## Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
