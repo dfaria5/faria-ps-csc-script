@@ -5,7 +5,22 @@ This text file includes all the details and configurations about each version of
 ### Full Clean Version
 
 ### Essential Version
-- Uninstall bloat windows apps. (with the exception of Microsoft Store and Xbox App)
+- Uninstall bloat windows apps. (Note: does not uninstall Microsoft Store and Xbox App)
+  - Media Player.
+  - Copilot.
+  - Bing.
+  - Clipchamp.
+  - Teams.
+  - News.
+  - Weather.
+  - Outlook.
+  - OneDrive.
+  - Solitaire.
+  - Sticky Notes.
+  - Power Automate.
+  - Cortana.
+  - To Do.
+  - Phone Link.
 - Disables Microsoft telemetry and optimises Windows services.
 - Other custom set Windows preferences.
   - Desktop preferences.
