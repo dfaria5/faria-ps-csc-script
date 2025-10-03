@@ -27,6 +27,7 @@ This text file includes all the details and configurations about each version of
     - Show classic desktop icons.
     - Set wallpaper mode to Picture.
     - Set default Windows wallpaper.
+    - Show Windows Build/Version at the bottom right corner.
   - File Explorer preferences.
     - Show hidden files.
     - Show file extension.
@@ -38,6 +39,7 @@ This text file includes all the details and configurations about each version of
     - Timeouts set to never.
     - Disable hard disk turning off by setting the value to 0.
   - Enables legacy component DirectPlay.
+  - Show Verbose Status (display more additional information when booting or shutting down and logging in or logging out Windows)
 - Installs programs.
   - Microsoft Distributions (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime)
   - Powershell 7
