@@ -540,6 +540,27 @@ if ($tweakGeneralExplorerAndOther) {
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
 
+	# === Configure Windows Performance Options ===
+	# Location: Advanced System Properties → Performance Options → Visual Effects
+	
+	$regPath = "HKCU:\Control Panel\Desktop"
+	$backupPath = "$env:Temp\UserPreferencesMask_backup_$(Get-Date -f yyyyMMdd_HHmmss).reg"
+	
+	# Backup current value
+	$current = Get-ItemProperty -Path $regPath -Name UserPreferencesMask -ErrorAction SilentlyContinue
+	if ($current) {
+	    $hex = ($current.UserPreferencesMask | ForEach-Object { $_.ToString("X2") }) -join ","
+	    reg export "HKCU\Control Panel\Desktop" $backupPath /y | Out-Null
+	    Write-Host "Backup created at $backupPath" -ForegroundColor Yellow
+	    Write-Host "Current UserPreferencesMask = $hex" -ForegroundColor DarkGray
+	}
+	
+	# Set new mask for ONLY the 7 options enabled, all else disabled
+	$newMask = [byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)
+
+	Set-ItemProperty -Path $regPath -Name UserPreferencesMask -Value $newMask -Type Binary
+	Write-Host "Applied new UserPreferencesMask." -ForegroundColor Green
+
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
 	# Restart desktop
@@ -636,4 +657,5 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Restart skipped." -ForegroundColor Green
 
 }
+
 
