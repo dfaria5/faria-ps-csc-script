@@ -496,19 +496,10 @@ if ($tweakGeneralExplorerAndOther) {
 	# Background type set to 'Picture'
 	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
 	
-	# Set wallpaper picture (test)
-	# Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-	# Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10   # Fill
-	# Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-
-	# Desktop icons size
-	# Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\1\Desktop" -Name "IconSize" -Type DWord -Value 53
-
-	# Windows text size
-	# Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility" -Name "TextScaleFactor" -Type DWord -Value 115
-
-	# Refresh desktop
-	# RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	# Set wallpaper picture
+	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
+	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
+	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -549,8 +540,11 @@ if ($tweakGeneralExplorerAndOther) {
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
 
-    # Restart explorer.exe to apply changes
-	Write-Host "Status: Restarting Explorer..." -ForegroundColor Yellow
+    # Restart explorer.exe and Desktop to apply changes
+	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
+	# Restart desktop
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	# Restart explorer.exe
     Stop-Process -Name explorer -Force
     Start-Sleep -Seconds 2
     Start-Process explorer.exe
@@ -642,3 +636,4 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Restart skipped." -ForegroundColor Green
 
 }
+
