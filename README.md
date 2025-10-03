@@ -14,7 +14,7 @@ Here's what the current script available will do.
 | Disable Microsoft Telemetry | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
 | Optimize Services | Yes :heavy_check_mark: | Partially :grey_exclamation: (Services from MS Store and Xbox App are set to Manual) | Partially :grey_exclamation: (*same as Essential*) |
 | Custom Set Preferences | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
-| Installs Apps | No :x: | Yes :heavy_check_mark: (MS Distributions, QuickTime, 7zip, Java, Notepad++, VLC) | Yes :heavy_check_mark: (*same as Essential*, plus Firefox, Steam, Teamspeak, Discord) |
+| Installs Apps | No :x: | Yes :heavy_check_mark: (MS Distributions, QuickTime, 7zip, Java, Notepad++, VLC) | Yes :heavy_check_mark: (*same as Essential*, plus additional apps) |
 
 See full details about each version [**here**](versions.md).
 
