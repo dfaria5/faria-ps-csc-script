@@ -4,13 +4,24 @@
 #>
 
 # Relaunch as Admin if not already
-if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+
+if (-not $IsAdmin) {
     Write-Host "Script not running as Administrator. Relaunching with elevated privileges..." -ForegroundColor Yellow
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = "powershell.exe"
-    $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     $psi.Verb = "runas"
+
+    if ($PSCommandPath) {
+        # Normal script file
+        $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    } else {
+        # Likely running via `irm ... | iex`
+        $scriptContent = $MyInvocation.MyCommand.Definition
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($scriptContent))
+        $psi.Arguments = "-NoProfile -ExecutionPolicy Bypass -EncodedCommand $encoded"
+    }
 
     try {
         [System.Diagnostics.Process]::Start($psi) | Out-Null
@@ -629,4 +640,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Restart skipped." -ForegroundColor Green
+
 }
