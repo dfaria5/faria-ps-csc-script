@@ -24,9 +24,5 @@ See full details about each version [**here**](versions.md).
 
 **Powershell Command**
 ```
-irm "https://dfaria5.github.io/files/scripts/FARIA_PS_CSC_SCRIPT.ps1" | iex
-```
-(if the command above doesnt work, try this one instead)
-```
 irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/FARIA_PS_CSC_SCRIPT.ps1" | iex
 ```
