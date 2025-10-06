@@ -536,42 +536,47 @@ if ($tweakGeneralExplorerAndOther) {
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
 	
-	# === Visual effects: enable specific items and set to Custom ===
-	$veRoot = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
+	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
+	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
 
-	# make visual effects "Custom" so the per-effect DefaultApplied keys are used
-	if (-not (Test-Path $veRoot)) { New-Item -Path $veRoot -Force | Out-Null }
-	Set-ItemProperty -Path $veRoot -Name "VisualFXSetting" -Value 3 -Type DWord -Force
+	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
 
-	# per-effect desired values (1 = enabled, 0 = disabled)
-	$effects = @{
-		"ControlAnimations"       = 1   # Animate controls & elements inside windows (YOU wanted this)
-		"DWMSaveThumbnailEnabled" = 1   # Save taskbar thumbnail previews
-		"ThumbnailsOrIcon"        = 1   # Show thumbnails instead of icons
-		"ListviewAlphaSelect"     = 1   # Translucent selection rectangle
-		"DragFullWindows"         = 1   # Show window contents while dragging
-		"FontSmoothing"           = 1   # Smooth edges of screen fonts (visual-effects side)
-		# explicit disables (the ones you wanted off)
-		"AnimateMinMax"           = 0   # Animate windows when minimizing/maximizing
-		"TaskbarAnimations"       = 0   # Animations in the taskbar
-		"DWMAeroPeekEnabled"      = 0   # Enable Peek (turn off)
-	}
+	# Default "best performance" UserPreferencesMask
+	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
 
-	foreach ($name in $effects.Keys) {
-		$k = Join-Path $veRoot $name
-		if (-not (Test-Path $k)) { New-Item -Path $k -Force | Out-Null }
-		Set-ItemProperty -Path $k -Name "DefaultApplied" -Value $effects[$name] -Type DWord -Force
-	}
+	# === RE-ENABLE SELECTED EFFECTS ===
 
-	# Desktop icon label drop shadows -> Explorer\Advanced\ListviewShadow (1 = on)
-	$advKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-	if (-not (Test-Path $advKey)) { New-Item -Path $advKey -Force | Out-Null }
-	Set-ItemProperty -Path $advKey -Name "ListviewShadow" -Value 1 -Type DWord -Force
+	# Animate controls and elements inside windows
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "MinAnimate" -Type String -Value "1"
 
-	# Also make sure font smoothing registry values are set (HKCU\Control Panel\Desktop)
-	$desktopKey = "HKCU:\Control Panel\Desktop"
-	Set-ItemProperty -Path $desktopKey -Name "FontSmoothing" -Value "2" -Force -ErrorAction SilentlyContinue
-	Set-ItemProperty -Path $desktopKey -Name "FontSmoothingType" -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+	# Save taskbar thumbnail previews
+	#   0 = Keep thumbnails cached (previews stay)
+	#   1 = Don’t keep thumbnails (disables feature)
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "AlwaysHibernateThumbnails" -Type DWord -Value 0
+
+	# Show thumbnails instead of icons
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
+
+	# Show translucent selection rectangle
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewAlphaSelect" -Type DWord -Value 1
+
+	# Show window contents while dragging
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "DragFullWindows" -Type String -Value "1"
+
+	# Smooth edges of screen fonts
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothing" -Type String -Value "2"
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothingType" -Type DWord -Value 2
+
+	# Use drop shadows for icon labels
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewShadow" -Type DWord -Value 1
+
+	# Disable Peek explicitly (if still active from prior config)
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
+
+	# Disable taskbar animations
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
