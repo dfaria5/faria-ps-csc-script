@@ -39,7 +39,7 @@ $disableTelemetry				= $true
 $manageServices  				= $true
 $setPowerPlanUltimate     		= $true
 $tweakGeneralExplorerAndOther	= $true
-$installapps					= $true
+$installapps					= $false	# Disabled for now, testing other stuff.
 
 Write-Host "`n# ============================================================" -ForegroundColor Green
 Write-Host "# Faria Powershell Custom Setup Config Script Win 10/11" -ForegroundColor Green
@@ -535,31 +535,46 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
+	
+	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
+	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
+
+	# Reset all visual effects to 'Adjust for best performance'
+	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
+
+	# Explicitly disable all effect values under UserPreferencesMask baseline (best performance)
+	# Default "best performance" mask for most builds
+	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
+
+	# Re-enable your selected effects by setting their individual flags
+	# These toggles are widely supported since Windows 7
+
+	# Animate controls and elements inside windows
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name MinAnimate -Type String -Value "1"
+
+	# Show window contents while dragging
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name DragFullWindows -Type String -Value "1"
+
+	# Smooth edges of screen fonts
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name FontSmoothing -Type String -Value "2"
+
+	# Show translucent selection rectangle
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ListviewAlphaSelect -Type DWord -Value 1
+
+	# Show thumbnails instead of icons
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name IconsOnly -Type DWord -Value 0
+
+	# Save taskbar thumbnail previews
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name AlwaysHibernateThumbnails -Type DWord -Value 0
+
+	# Use drop shadows for icon labels
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ListviewShadow -Type DWord -Value 1
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
-
-	# === Configure Windows Performance Options ===
-	# Location: Advanced System Properties → Performance Options → Visual Effects
-	
-	$regPath = "HKCU:\Control Panel\Desktop"
-	$backupPath = "$env:Temp\UserPreferencesMask_backup_$(Get-Date -f yyyyMMdd_HHmmss).reg"
-	
-	# Backup current value
-	$current = Get-ItemProperty -Path $regPath -Name UserPreferencesMask -ErrorAction SilentlyContinue
-	if ($current) {
-	    $hex = ($current.UserPreferencesMask | ForEach-Object { $_.ToString("X2") }) -join ","
-	    reg export "HKCU\Control Panel\Desktop" $backupPath /y | Out-Null
-	    Write-Host "Backup created at $backupPath" -ForegroundColor Yellow
-	    Write-Host "Current UserPreferencesMask = $hex" -ForegroundColor DarkGray
-	}
-	
-	# Set new mask for ONLY the 7 options enabled, all else disabled
-	$newMask = [byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)
-
-	Set-ItemProperty -Path $regPath -Name UserPreferencesMask -Value $newMask -Type Binary
-	Write-Host "Applied new UserPreferencesMask." -ForegroundColor Green
 
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
@@ -567,8 +582,6 @@ if ($tweakGeneralExplorerAndOther) {
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 	# Restart explorer.exe
     Stop-Process -Name explorer -Force
-    Start-Sleep -Seconds 2
-    Start-Process explorer.exe
 
 	# Enable DirectPlay. This is for some old games (for example: GTA San Andreas)
 	Write-Host "Status: Enabling legacy feature 'DirectPlay'..." -ForegroundColor Yellow
