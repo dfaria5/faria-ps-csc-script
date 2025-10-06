@@ -541,6 +541,9 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
+	Start-Sleep -Milliseconds 500
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
+
 
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
@@ -676,5 +679,6 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Restart skipped." -ForegroundColor Green
 
 }
+
 
 
