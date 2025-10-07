@@ -544,14 +544,9 @@ if ($tweakGeneralExplorerAndOther) {
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
-	# Default "best performance" UserPreferencesMask
-	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
+	# Default "best performance" UserPreferencesMask with animations enabled
+	$PerfMask = [byte[]](152, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
-	
-	# Fix "Animate controls and elements inside windows" master flag
-	$mask = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask).'UserPreferencesMask'
-	$mask[0] = $mask[0] -bor 0x08
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $mask
 
 	# === RE-ENABLE SELECTED EFFECTS ===
 
