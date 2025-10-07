@@ -556,30 +556,31 @@ if ($tweakGeneralExplorerAndOther) {
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
 
-	# Animate controls and elements inside windows
-	#Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "ControlAnimations" -Type DWord -Value 1
-	#HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations
+	# Enable/Check 'Animate controls and elements inside windows'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "DefaultApplied" -Type DWord -Value 1
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "DefaultValue" -Type DWord -Value 1
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "Value" -Type DWord -Value 1
 
-	# Uncheck! Animate windows when minimising and maximising
+	# Disable/Uncheck 'Animate windows when minimising and maximising'
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name "MinAnimate" -Type String -Value "0"
 
-	# Uncheck! Enable Peek
+	# Disable/Uncheck 'Enable Peek'
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
 
-	# Show thumbnails instead of icons
+	# Enable/Check 'Show thumbnails instead of icons'
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
 
-	# Show translucent selection rectangle
+	# Enable/Check 'Show translucent selection rectangle'
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewAlphaSelect" -Type DWord -Value 1
 
-	# Show window contents while dragging
+	# Enable/Check 'Show window contents while dragging'
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "DragFullWindows" -Type String -Value "1"
 
-	# Smooth edges of screen fonts
+	# Enable/Check 'Smooth edges of screen fonts'
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothing" -Type String -Value "2"
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothingType" -Type DWord -Value 2
 
-	# Use drop shadows for icon labels
+	# Enable/Check 'Use drop shadows for icon labels'
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewShadow" -Type DWord -Value 1
 
 	# Disable taskbar animations
