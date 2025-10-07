@@ -480,10 +480,14 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Detect Windows version and pick default wallpaper
 	$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
-	
+
+	# Registry paths for personalization
+	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+
 	# Determine dark mode (1 = light mode, 0 = dark mode)
     $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
-	
+
 	if ($winBuild -ge 22000) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
@@ -497,13 +501,9 @@ if ($tweakGeneralExplorerAndOther) {
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
 	}
 
-	# Registry paths for personalization
-	$desktopReg = "HKCU:\Control Panel\Desktop"
-	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-
 	# Background type set to 'Picture'
 	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
-	
+
 	# Set wallpaper picture
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
@@ -543,7 +543,7 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
-	
+
 	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
 	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
 
@@ -552,9 +552,21 @@ if ($tweakGeneralExplorerAndOther) {
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
+	# Animate controls and elements inside windows
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type DWord -Value 1
+
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
+
+	# Animate controls and elements inside windows
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type DWord -Value 1
+
+	# Uncheck! Animate windows when minimising and maximising
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "MinAnimate" -Type String -Value "0"
+	
+	# Uncheck! Enable Peek
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
 
 	# Show thumbnails instead of icons
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
