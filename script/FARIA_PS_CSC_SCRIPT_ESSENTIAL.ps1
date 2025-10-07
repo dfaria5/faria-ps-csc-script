@@ -58,21 +58,21 @@ $installapps					= $false	# Disabled for now, testing other stuff.
 # Detect Windows version
 $winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
 
-Write-Host "`n<$													$>" -ForegroundColor Green
-Write-Host "	Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
-Write-Host "<$													$>`n" -ForegroundColor Green
+Write-Host "`n<$                                                       $>" -ForegroundColor Green
+Write-Host "     Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
+Write-Host "<$                                                       $>`n" -ForegroundColor Green
 
-Write-Host "	    @@@@@@@@@@@@@@@@@@@@@@@@@@	Faria Custom Setup Config Script Win10/11" -ForegroundColor Blue
-Write-Host "	   @@@@@@@@@@@@@@@@@@@@@@@@@@	POWERSHELL SCRIPT VERSION:" -ForegroundColor Blue
+Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor Blue
+Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:" -ForegroundColor Blue
 Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@" -ForegroundColor Blue
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@		 ______                    _   _       _ " -ForegroundColor Blue
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@		|  ____|                  | | (_)     | |" -ForegroundColor Blue
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@		| |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor Blue
-Write-Host "  @@@@@@@  @@@@@       @@@@@		|  __| / __/ __|/ _ \ '_ \| __| |/ _` | |" -ForegroundColor Blue
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@			| |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor Blue
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@			|______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor Blue
+Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor Blue
+Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor Blue
+Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor Blue
+Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _` | |" -ForegroundColor Blue
+Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor Blue
+Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor Blue
 
-Write-Host "Windows OS Version Detected: $winBuild `n" -ForegroundColor Green
+Write-Host "`nWindows OS Version Build Detected: $winBuild `n" -ForegroundColor Green
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -261,29 +261,29 @@ if ($manageServices) {
 	$manualServices = @(
 		"SysMain",               		# Superfetch/Prefetch
 		"TrkWks",                		# Distributed Link Tracking
-		"TabletInputService",    		# Touch/pen input
+		# "TabletInputService",    		# Touch/pen input -- NOT WORKING ( WARNING: Could not change TabletInputService (Service TabletInputService was not found on computer '.'.) )
 		"DiagSvc",               		# Diagnostic Execution
 		"wercplsupport",         		# Problem Reports
 		"BTAGService",           		# Bluetooth Audio Gateway
 		"BthAvctpSvc",           		# Bluetooth Audio/Video
 		"bthserv",               		# Core Bluetooth
-		"NgcCtnrSvc",            		# Microsoft Passport Container
-		"NgcSvc",                		# Microsoft Passport
+		# "NgcCtnrSvc",            		# Microsoft Passport Container -- NOT WORKING ( WARNING: Could not change NgcCtnrSvc (Service 'Microsoft Passport Container (NgcCtnrSvc)' cannot be configured due to the following error: Access is denied) )
+		# "NgcSvc",                		# Microsoft Passport -- NOT WORKING ( WARNING: Could not change NgcSvc (Service 'Microsoft Passport (NgcSvc)' cannot be configured due to the following error: Access is denied) )
 		"WpnService",            		# Windows Push Notifications
 		"WpnUserService"         		# Notifications per-user
 		"AxInstSV",     				# ActiveX Installer
 		"BDESVC",       				# BitLocker Drive Encryption
-		"tcsd",         				# Cellular Time (sometimes 'tzautoupdate')
+		# "tcsd",         				# Cellular Time (sometimes 'tzautoupdate') -- NOT WORKING ( WARNING: Could not change tcsd (Service tcsd was not found on computer '.'.) )
 		"CertPropSvc",  				# Certificate Propagation
 		"CldFlt",       				# Cloud Backup/Restore
-		"CDPUserSvc*",  				# Connected Devices Platform
-		"PimIndexMaintenanceSvc*", 		# Contact Data
+		# "CDPUserSvc*",  				# Connected Devices Platform -- NOT WORKING ( WARNING: Could not change CDPUserSvc* (Service CDPUserSvc* was not found on computer '.'.) )
+		# "PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
 		"lfsvc",        				# Geolocation
 		"SmsRouter",    				# SMS Router
 		"Netlogon",     				# Netlogon (not in workgroup)
 		"WpcMonSvc",    				# Parental Controls
 		"SEMgrSvc",     				# Payments & NFC
-		"PrintWorkflowUserSvc*", 		# Print Device Config
+		# "PrintWorkflowUserSvc*", 		# Print Device Config -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
 		"QWAVE",        				# Quality Windows Audio Video Experience
 		"RmSvc",        				# Radio Management
 		"RasAuto",      				# Remote Access Auto Connection
@@ -304,7 +304,7 @@ if ($manageServices) {
 		"TapiSrv",      				# Telephony
 		"vds",          				# Virtual Disk
 		"VSS",          				# Volume Shadow Copy
-		"sdclt",        				# Windows Backup
+		# "sdclt",        				# Windows Backup -- NOT WORKING ( WARNING: Could not change sdclt (Service sdclt was not found on computer '.'.) )
 		"WbioSrvc",     				# Biometric
 		"FrameServer",  				# Camera Frame Server
 		"Wcncsvc",      				# Windows Connect Now
@@ -326,7 +326,7 @@ if ($manageServices) {
 		"dmwappushservice",     	# WAP Push Messaging
 		"RetailDemo",   			# Retail Demo
 		"WMPNetworkSvc",			# WMP Network Sharing
-		"Fax",                   	# Fax service
+		# "Fax",                   	# Fax service -- NOT WORKING ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) )
 		"MapsBroker",   			# Downloaded Maps Manager
 		"MessagingService",      	# SMS Routing
 		"PhoneSvc",     			# Phone Service
@@ -674,7 +674,6 @@ if ($installapps) {
     )
 
     foreach ($app in $apps) {
-        # Check if app already installed
         $isInstalled = winget list --id $app --accept-source-agreements --accept-package-agreements 2>$null | Select-String $app
 
         if ($isInstalled) {
@@ -684,7 +683,6 @@ if ($installapps) {
 
         Write-Host "Status: Installing $app..." -ForegroundColor Yellow
         try {
-            # Let winget show progress bar, but suppress its "already installed" error messages
             winget install --id $app --silent --accept-source-agreements --accept-package-agreements -e --disable-interactivity --no-upgrade | Out-Null
             Write-Host "Status: $app installed successfully!" -ForegroundColor Yellow
         } catch {
@@ -693,12 +691,12 @@ if ($installapps) {
     }
 }
 
-Write-Host "`nScript completed! Its recommended to restart Windows for all settings to be applied." -ForegroundColor Green
-$restart = Read-Host "Do you want to restart your PC now? (Y/N): "
+Write-Host "`nScript completed! Its recommended to restart Windows for full effect of all settings to be applied!" -ForegroundColor Green
+$restart = Read-Host "Restart your PC now? (Y/N): "
 
 if ($restart -match '^[Yy]$') {
     Write-Host "Restarting your PC..." -ForegroundColor Green
     Restart-Computer -Force
 } else {
-    Write-Host "Restart skipped." -ForegroundColor Green
+    Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
 }
