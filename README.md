@@ -16,7 +16,7 @@ Here's what the current script available will do.
 | Custom Set Preferences | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
 | Installs Apps | No :x: | Yes :heavy_check_mark: (see details bellow) | Yes :heavy_check_mark: (see details bellow) |
 
-See full details about each version [**here**](script\versions.md).
+See full details about each version [**here**](script/versions.md).
 
 ## Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
