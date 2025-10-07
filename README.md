@@ -4,8 +4,8 @@ Simple run powershell custom config script for Windows 10 and 11 that cleans and
 ## Script
 Here's what the current script available will do.
 ### Supported Windows Versions
-- Windows 11
-- Windows 10
+- Windows 11 (Tested Win Version: 25H2 *latest version*)
+- Windows 10 (Tested Win Version: 22H2 *latest version*)
 
 ### Versions
 |  | Full Clean | Essential | Personal Rig |
