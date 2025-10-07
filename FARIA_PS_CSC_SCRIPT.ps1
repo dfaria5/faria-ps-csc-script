@@ -547,24 +547,22 @@ if ($tweakGeneralExplorerAndOther) {
 	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
 	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
 
-	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
+	# Set Performance options preset to "Best Performance" to "Custom"
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
-
-	# Animate controls and elements inside windows
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type DWord -Value 1
 
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
 
 	# Animate controls and elements inside windows
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type DWord -Value 1
+	#Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "ControlAnimations" -Type DWord -Value 1
+	#HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations
 
 	# Uncheck! Animate windows when minimising and maximising
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "MinAnimate" -Type String -Value "0"
-	
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name "MinAnimate" -Type String -Value "0"
+
 	# Uncheck! Enable Peek
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
 
