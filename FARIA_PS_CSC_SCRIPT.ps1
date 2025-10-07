@@ -544,7 +544,6 @@ if ($tweakGeneralExplorerAndOther) {
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
-
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
@@ -552,7 +551,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# === RE-ENABLE SELECTED EFFECTS ===
 
 	# Animate controls and elements inside windows
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "MinAnimate" -Type String -Value "1"
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type String -Value "1"
 
 	# Save taskbar thumbnail previews
 	#   0 = Keep thumbnails cached (previews stay)
@@ -679,6 +678,5 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Restart skipped." -ForegroundColor Green
 
 }
-
 
 
