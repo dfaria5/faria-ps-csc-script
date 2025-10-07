@@ -16,7 +16,7 @@ Here's what the current script available will do.
 | Custom Set Preferences | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
 | Installs Apps | No :x: | Yes :heavy_check_mark: (see details bellow) | Yes :heavy_check_mark: (see details bellow) |
 
-See full details about each version [**here**](versions.md).
+See full details about each version [**here**](script\versions.md).
 
 ## Usage
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
@@ -24,5 +24,5 @@ See full details about each version [**here**](versions.md).
 
 **Essential**
 ```
-irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/FARIA_PS_CSC_SCRIPT.ps1" | iex
+irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/FARIA_PS_CSC_SCRIPT_ESSENTIAL.ps1" | iex
 ```
