@@ -547,16 +547,16 @@ if ($tweakGeneralExplorerAndOther) {
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
+	
+	# Fix "Animate controls and elements inside windows" master flag
+	$mask = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask).'UserPreferencesMask'
+	$mask[0] = $mask[0] -bor 0x08
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $mask
 
 	# === RE-ENABLE SELECTED EFFECTS ===
 
 	# Animate controls and elements inside windows
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type String -Value "1"
-
-	# Save taskbar thumbnail previews
-	#   0 = Keep thumbnails cached (previews stay)
-	#   1 = Don’t keep thumbnails (disables feature)
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "AlwaysHibernateThumbnails" -Type DWord -Value 0
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type String -Value 1
 
 	# Show thumbnails instead of icons
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
