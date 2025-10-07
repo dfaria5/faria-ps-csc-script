@@ -480,9 +480,17 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Detect Windows version and pick default wallpaper
 	$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
+	
+	# Determine dark mode (1 = light mode, 0 = dark mode)
+    $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
+	
 	if ($winBuild -ge 22000) {
 		# Windows 11 default
-		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+		if ($isLightMode -eq 1) {
+            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"   # Light mode
+        } else {
+            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"  # Dark mode
+        }
 	}
 	else {
 		# Windows 10 default
@@ -539,26 +547,14 @@ if ($tweakGeneralExplorerAndOther) {
 	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
 	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
 
-	# Set best performance (2), then switch to custom (3)
+	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
-	# --- Set baseline mask (Best Performance)
-	# Then flip animation bits back manually
+	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
-
-	# Bit 0x01 = Animate controls/elements
-	# Bit 0x08 = Show window contents while dragging
-	# Modify first byte to enable these
-	$PerfMask[0] = $PerfMask[0] -bor 0x09  # combine bits 0x01 and 0x08
-
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
-
-	# === RE-ENABLE SELECTED EFFECTS ===
-
-	# Animate controls and elements inside windows
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ControlAnimations" -Type DWord -Value 1
 
 	# Show thumbnails instead of icons
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
@@ -578,9 +574,6 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Disable taskbar animations
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
-
-	# Save taskbar thumbnail previews
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "AlwaysHibernateThumbnails" -Type DWord -Value 0
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
