@@ -539,13 +539,20 @@ if ($tweakGeneralExplorerAndOther) {
 	# --- Set Windows Visual Effects: Best Performance + Custom Preferences ---
 	Write-Host "Applying 'Adjust for best performance' baseline..." -ForegroundColor Cyan
 
-	# 0 = Let Windows choose, 1 = Adjust for best appearance, 2 = Adjust for best performance, 3 = Custom
+	# Set best performance (2), then switch to custom (3)
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
-	# Default "best performance" UserPreferencesMask 
+	# --- Set baseline mask (Best Performance)
+	# Then flip animation bits back manually
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
+
+	# Bit 0x01 = Animate controls/elements
+	# Bit 0x08 = Show window contents while dragging
+	# Modify first byte to enable these
+	$PerfMask[0] = $PerfMask[0] -bor 0x09  # combine bits 0x01 and 0x08
+
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
 
 	# === RE-ENABLE SELECTED EFFECTS ===
@@ -569,11 +576,11 @@ if ($tweakGeneralExplorerAndOther) {
 	# Use drop shadows for icon labels
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewShadow" -Type DWord -Value 1
 
-	# Disable Peek explicitly (if still active from prior config)
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
-
 	# Disable taskbar animations
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
+
+	# Save taskbar thumbnail previews
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "AlwaysHibernateThumbnails" -Type DWord -Value 0
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
@@ -673,6 +680,5 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Restart skipped." -ForegroundColor Green
 
 }
-
 
 
