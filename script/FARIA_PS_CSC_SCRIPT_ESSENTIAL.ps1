@@ -55,24 +55,24 @@ $setPowerPlanUltimate     		= $true
 $tweakGeneralExplorerAndOther	= $true
 $installapps					= $false	# Disabled for now, testing other stuff.
 
-# Detect Windows version
-$winBuild = [int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber
+# Detect Windows build information
+$osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
 
 Write-Host "`n<$                                                       $>" -ForegroundColor Green
 Write-Host "     Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
 Write-Host "<$                                                       $>`n" -ForegroundColor Green
 
-Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue
-Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:" -ForegroundColor DarkBlue
-Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@" -ForegroundColor DarkBlue
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor DarkBlue
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor DarkBlue
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor DarkBlue
-Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue
+Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor Blue -BackgroundColor White
+Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor Blue -BackgroundColor White
+Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor Blue -BackgroundColor White
+Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor Blue -BackgroundColor White
+Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor Blue -BackgroundColor White
+Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor Blue -BackgroundColor White
+Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor Blue -BackgroundColor White
+Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor Blue -BackgroundColor White
+Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor Blue -BackgroundColor White
 
-Write-Host "`nWindows OS Version Build Detected: $winBuild `n" -ForegroundColor Green
+Write-Host "`nWindows OS Version Build Detected: $osInfo.ProductName | $osInfo.EditionID | $osInfo.DisplayVersion $osInfo.ReleaseId | $osInfo.CurrentBuildNumber `n" -ForegroundColor Green
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
