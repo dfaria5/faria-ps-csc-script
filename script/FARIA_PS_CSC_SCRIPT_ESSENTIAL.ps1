@@ -62,17 +62,17 @@ Write-Host "`n<$                                                       $>" -Fore
 Write-Host "     Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
 Write-Host "<$                                                       $>`n" -ForegroundColor Green
 
-Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor White
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor White
+Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor Black
 
-Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osInfo.ProductName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green
+Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osInfo.ProductName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -267,23 +267,23 @@ if ($manageServices) {
 		"BTAGService",           		# Bluetooth Audio Gateway
 		"BthAvctpSvc",           		# Bluetooth Audio/Video
 		"bthserv",               		# Core Bluetooth
-		"NgcCtnrSvc",            		# Microsoft Passport Container -- NOT WORKING ( WARNING: Could not change NgcCtnrSvc (Service 'Microsoft Passport Container (NgcCtnrSvc)' cannot be configured due to the following error: Access is denied) )
-		"NgcSvc",                		# Microsoft Passport -- NOT WORKING ( WARNING: Could not change NgcSvc (Service 'Microsoft Passport (NgcSvc)' cannot be configured due to the following error: Access is denied) )
+		# "NgcCtnrSvc",            		# Microsoft Passport Container -- NOT WORKING ( WARNING: Could not change NgcCtnrSvc (Service 'Microsoft Passport Container (NgcCtnrSvc)' cannot be configured due to the following error: Access is denied) )
+		# "NgcSvc",                		# Microsoft Passport -- NOT WORKING ( WARNING: Could not change NgcSvc (Service 'Microsoft Passport (NgcSvc)' cannot be configured due to the following error: Access is denied) )
 		"WpnService",            		# Windows Push Notifications
 		"WpnUserService"         		# Notifications per-user
 		"AxInstSV",     				# ActiveX Installer
 		"BDESVC",       				# BitLocker Drive Encryption
-		"tcsd",         				# Cellular Time (sometimes 'tzautoupdate') -- NOT WORKING ( WARNING: Could not change tcsd (Service tcsd was not found on computer '.'.) )
+		# "tcsd",         				# Cellular Time (sometimes 'tzautoupdate') -- NOT WORKING ( WARNING: Could not change tcsd (Service tcsd was not found on computer '.'.) )
 		"CertPropSvc",  				# Certificate Propagation
 		"CldFlt",       				# Cloud Backup/Restore
-		"CDPUserSvc*",  				# Connected Devices Platform -- NOT WORKING ( WARNING: Could not change CDPUserSvc* (Service CDPUserSvc* was not found on computer '.'.) )
-		"PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
+		# "CDPUserSvc*",  				# Connected Devices Platform -- NOT WORKING ( WARNING: Could not change CDPUserSvc* (Service CDPUserSvc* was not found on computer '.'.) )
+		# "PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
 		"lfsvc",        				# Geolocation
 		"SmsRouter",    				# SMS Router
 		"Netlogon",     				# Netlogon (not in workgroup)
 		"WpcMonSvc",    				# Parental Controls
 		"SEMgrSvc",     				# Payments & NFC
-		"PrintWorkflowUserSvc*", 		# Print Device Config -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
+		# "PrintWorkflowUserSvc*", 		# Print Device Config -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
 		"QWAVE",        				# Quality Windows Audio Video Experience
 		"RmSvc",        				# Radio Management
 		"RasAuto",      				# Remote Access Auto Connection
@@ -304,7 +304,7 @@ if ($manageServices) {
 		"TapiSrv",      				# Telephony
 		"vds",          				# Virtual Disk
 		"VSS",          				# Volume Shadow Copy
-		"sdclt",        				# Windows Backup -- NOT WORKING ( WARNING: Could not change sdclt (Service sdclt was not found on computer '.'.) )
+		# "sdclt",        				# Windows Backup -- NOT WORKING ( WARNING: Could not change sdclt (Service sdclt was not found on computer '.'.) )
 		"WbioSrvc",     				# Biometric
 		"FrameServer",  				# Camera Frame Server
 		"Wcncsvc",      				# Windows Connect Now
@@ -326,7 +326,7 @@ if ($manageServices) {
 		"dmwappushservice",     	# WAP Push Messaging
 		"RetailDemo",   			# Retail Demo
 		"WMPNetworkSvc",			# WMP Network Sharing
-		"Fax",                   	# Fax service -- NOT WORKING ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) )
+		"Fax",                   	# Fax service -- NOT WORKING ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) ) -- still on win10
 		"MapsBroker",   			# Downloaded Maps Manager
 		"MessagingService",      	# SMS Routing
 		"PhoneSvc",     			# Phone Service
