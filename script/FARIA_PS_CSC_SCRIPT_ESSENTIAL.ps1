@@ -504,31 +504,43 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
 	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$lockReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
 	# Determine dark mode (1 = light mode, 0 = dark mode)
     $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
-	if ($winBuild -ge 22000) {
+	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
-            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg" 
+            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+			$lockWallpaperPath = "C:\Windows\Web\Screen\img105.jpg"
         } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+			$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
         }
 	}
 	else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+		$lockWallpaperPath = "C:\Windows\Web\Screen\img105.jpg"
 	}
 
-	# Background type set to 'Picture'
+	# Desktop background type set to 'Picture'
 	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
 
-	# Set wallpaper picture
+	# Lock screen background type set to 'Picture'
+	Set-ItemProperty -Path $lockReg -Name "LockScreenType" -Type DWord -Value 1
+
+	# Set desktop wallpaper picture
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
 	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
+	
+	# Set lock screen wallpaper picture
+	Set-ItemProperty -Path $lockReg -Name "LockScreenImagePath" -Value $lockWallpaperPath
+	Set-ItemProperty -Path $lockReg -Name "LockScreenImageStatus" -Value 1
+	Set-ItemProperty -Path $lockReg -Name "LockScreenImageUrl" -Value $lockWallpaperPath
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -558,7 +570,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Taskbar search display set to icon (Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarSearchMode" -Value 1 -Type DWord
 	
-	# Enable "End task" in app right-click menu taskbar (Windows 11 22H2+)
+	# Enable "End task" in app right-click menu taskbar (Only on Windows 11)
 	New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings" -Force | Out-Null
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings" -Name TaskbarEndTask -Type DWord -Value 1
 
