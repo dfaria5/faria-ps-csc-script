@@ -15,7 +15,7 @@
 	 ______                    _   _       _ 
 	|  ____|                  | | (_)     | |
 	| |__   ___ ___  ___ _ __ | |_ _  __ _| |
-	|  __| / __/ __|/ _ \ '_ \| __| |/ _` | |
+	|  __| / __/ __|/ _ \ '_ \| __| |/ _' | |
 	| |____\__ \__ \  __/ | | | |_| | (_| | |
 	|______|___/___/\___|_| |_|\__|_|\__,_|_|
 #>
@@ -62,15 +62,15 @@ Write-Host "`n<$                                                       $>" -Fore
 Write-Host "     Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
 Write-Host "<$                                                       $>`n" -ForegroundColor Green
 
-Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor Blue
-Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:" -ForegroundColor Blue
-Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@" -ForegroundColor Blue
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor Blue
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor Blue
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor Blue
-Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _` | |" -ForegroundColor Blue
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor Blue
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor Blue
+Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue
+Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:" -ForegroundColor DarkBlue
+Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@" -ForegroundColor DarkBlue
+Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor DarkBlue
+Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor DarkBlue
+Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor DarkBlue
+Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue
+Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue
+Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue
 
 Write-Host "`nWindows OS Version Build Detected: $winBuild `n" -ForegroundColor Green
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
