@@ -508,9 +508,9 @@ if ($tweakGeneralExplorerAndOther) {
 	$desktopReg = "HKCU:\Control Panel\Desktop"
 	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 	
-	New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\Personalization" -Force | Out-Null
+	New-Item -Path "HKLM:\Software\Microsoft\Windows\Personalization" -Force | Out-Null
 	New-Item -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Force | Out-Null
-	$lockReg1 = "HKLM:\Software\Policies\Microsoft\Windows\Personalization"
+	$lockReg1 = "HKLM:\Software\Microsoft\Windows\Personalization"
 	$lockReg2 = "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 
 	# Determine dark mode (1 = light mode, 0 = dark mode)
