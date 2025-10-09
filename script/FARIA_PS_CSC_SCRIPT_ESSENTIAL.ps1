@@ -71,7 +71,7 @@ Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_
 Write-Host "`n<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
-Write-Host "<$                                                              $>`n" -ForegroundColor Green -BackgroundColor Black
+Write-Host "<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
 
 Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osInfo.ProductName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
@@ -503,8 +503,72 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
-
+	
+	# theme and desktop key variables
 	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+	$lockReg    = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
+
+	# Determine light/dark (1 = light, 0 = dark)
+	$isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
+
+	# Choose files (adjust these filenames if your build uses different default names)
+	if ($osInfo.CurrentBuildNumber -ge 22000) {
+		if ($isLightMode -eq 1) {
+			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"    # Windows 11 light default (common)
+			$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"            # Windows 11 light lock default (common)
+		} else {
+			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"   # Windows 11 dark default (common)
+			$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"            # Windows 11 dark lock default (common)
+		}
+	} else {
+		# Windows 10
+		$wallpaperPath     = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
+		$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
+	}
+
+	# 1) Set desktop -> Picture mode + wallpaper
+	Try {
+		# ensure personalize key exists
+		if (-not (Test-Path $themeReg)) { New-Item -Path $themeReg -Force | Out-Null }
+
+		# set desktop to Picture
+		Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1 -ErrorAction Stop
+
+		# write wallpaper values
+		Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath -ErrorAction Stop
+		Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10 -ErrorAction SilentlyContinue
+		Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0 -ErrorAction SilentlyContinue
+
+		# refresh the desktop (lighter refresh + restart explorer)
+		Start-Process -FilePath "rundll32.exe" -ArgumentList "user32.dll,UpdatePerUserSystemParameters" -NoNewWindow -Wait -ErrorAction SilentlyContinue
+		Get-Process explorer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+		Start-Sleep -Milliseconds 600
+		Start-Process explorer.exe
+
+		Write-Host "Desktop wallpaper set to: $wallpaperPath" -ForegroundColor Green
+	} catch {
+		Write-Host "Failed to set desktop wallpaper: $_" -ForegroundColor Red
+	}
+
+	# 2) Set per-user Lock Screen -> Picture mode and image path
+	Try {
+		if (-not (Test-Path $lockReg)) { New-Item -Path $lockReg -Force | Out-Null }
+
+		# 1 = Picture, 2 = Slideshow, 3 = Windows Spotlight
+		Set-ItemProperty -Path $lockReg -Name "LockScreenType" -Type DWord -Value 1 -ErrorAction SilentlyContinue
+
+		# Per-user lock image values
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImagePath"   -Value $lockWallpaperPath -ErrorAction SilentlyContinue
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImageUrl"    -Value $lockWallpaperPath -ErrorAction SilentlyContinue
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImageStatus" -Value 1 -ErrorAction SilentlyContinue
+
+		Write-Host "Per-user lock screen set to picture: $lockWallpaperPath" -ForegroundColor Green
+	} catch {
+		Write-Host "Failed to set per-user lockscreen: $_" -ForegroundColor Yellow
+	}
+
+	<#$desktopReg = "HKCU:\Control Panel\Desktop"
 	$lockReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
@@ -544,7 +608,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Set lock screen wallpaper picture
 	Set-ItemProperty -Path $lockReg -Name "LockScreenImagePath" -Value $lockWallpaperPath
 	Set-ItemProperty -Path $lockReg -Name "LockScreenImageStatus" -Value 1
-	Set-ItemProperty -Path $lockReg -Name "LockScreenImageUrl" -Value $lockWallpaperPath
+	Set-ItemProperty -Path $lockReg -Name "LockScreenImageUrl" -Value $lockWallpaperPath#>
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
