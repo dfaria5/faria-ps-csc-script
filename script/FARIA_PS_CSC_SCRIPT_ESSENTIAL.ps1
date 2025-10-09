@@ -58,10 +58,6 @@ $installapps					= $false	# Disabled for now, testing other stuff.
 # Detect Windows build information
 $osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
 
-Write-Host "`n<$                                                       $>" -ForegroundColor Green
-Write-Host "     Created by FARIA (https://github.com/dfaria5)" -ForegroundColor Green
-Write-Host "<$                                                       $>`n" -ForegroundColor Green
-
 Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor DarkBlue -BackgroundColor Black
@@ -71,6 +67,11 @@ Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _
 Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor Black
+
+Write-Host "`n<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
+Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
+Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
+Write-Host "<$                                                              $>`n" -ForegroundColor Green -BackgroundColor Black
 
 Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osInfo.ProductName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
@@ -514,7 +515,8 @@ if ($tweakGeneralExplorerAndOther) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-			$lockWallpaperPath = "C:\Windows\Web\Screen\img105.jpg"
+			$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
+			#$lockWallpaperPath = "C:\Windows\Web\Screen\img105.jpg"
         } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
 			$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
@@ -522,8 +524,10 @@ if ($tweakGeneralExplorerAndOther) {
 	}
 	else {
 		# Windows 10 default
-		$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-		$lockWallpaperPath = "C:\Windows\Web\Screen\img105.jpg"
+		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
+		#$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+		$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
+		#$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
 	}
 
 	# Desktop background type set to 'Picture'
