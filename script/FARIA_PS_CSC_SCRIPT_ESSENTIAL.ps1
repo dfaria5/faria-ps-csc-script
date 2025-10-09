@@ -503,77 +503,9 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
-	
-	# ============================
-	# Desktop + Lock Screen Setup
-	# ============================
 
 	$desktopReg = "HKCU:\Control Panel\Desktop"
-	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-	$spotlightKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-	$lockRegUser = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen"
-	$lockPolicy  = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"
-
-	# Detect Windows build
-	$osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
-	Write-Host "`nWindows OS Version Build Detected: $($osInfo.ProductName) | $($osInfo.EditionID) | $($osInfo.DisplayVersion) | Build $($osInfo.CurrentBuildNumber)`n" -ForegroundColor Cyan
-
-	# Detect light/dark mode
-	$isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
-
-	# Choose wallpapers
-	if ($osInfo.CurrentBuildNumber -ge 22000) {
-		# Windows 11
-		if ($isLightMode -eq 1) {
-			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-			$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
-		} else {
-			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
-			$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
-		}
-	} else {
-		# Windows 10
-		$wallpaperPath     = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-		$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
-	}
-
-	# ============================
-	# Desktop Wallpaper (force Picture mode)
-	# ============================
-	Set-ItemProperty -Path $themeReg -Name "SlideshowEnabled" -Value 0 -ErrorAction SilentlyContinue
-	Set-ItemProperty -Path $themeReg -Name "BackgroundType" -Value 1
-	Set-ItemProperty -Path $desktopReg -Name "Wallpaper" -Value $wallpaperPath
-	Set-ItemProperty -Path $desktopReg -Name "WallpaperStyle" -Value 10
-	Set-ItemProperty -Path $desktopReg -Name "TileWallpaper" -Value 0
-
-	# ============================
-	# Lock Screen Wallpaper (force Picture mode)
-	# ============================
-
-	# Disable Spotlight completely
-	if (Test-Path $spotlightKey) {
-		Set-ItemProperty -Path $spotlightKey -Name "RotatingLockScreenEnabled" -Value 0 -ErrorAction SilentlyContinue
-		Set-ItemProperty -Path $spotlightKey -Name "RotatingLockScreenOverlayEnabled" -Value 0 -ErrorAction SilentlyContinue
-	}
-
-	# Ensure Lock Screen keys exist
-	if (-not (Test-Path $lockRegUser)) {
-		New-Item -Path $lockRegUser -Force | Out-Null
-	}
-	if (-not (Test-Path $lockPolicy)) {
-		New-Item -Path $lockPolicy -Force | Out-Null
-	}
-
-	# Set lock screen wallpaper paths (both policy + user)
-	Set-ItemProperty -Path $lockRegUser -Name "CreativeId" -Value ""
-	Set-ItemProperty -Path $lockRegUser -Name "LandscapeAssetPath" -Value $lockWallpaperPath
-	Set-ItemProperty -Path $lockRegUser -Name "LockScreenImagePath" -Value $lockWallpaperPath
-	Set-ItemProperty -Path $lockPolicy  -Name "LockScreenImage" -Value $lockWallpaperPath
-
-	Write-Host "Desktop wallpaper set to: $wallpaperPath" -ForegroundColor Yellow
-	Write-Host "Lock screen wallpaper set to: $lockWallpaperPath" -ForegroundColor Yellow
-
-	<#$desktopReg = "HKCU:\Control Panel\Desktop"
+	$lockReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
 	# Determine dark mode (1 = light mode, 0 = dark mode)
@@ -595,17 +527,18 @@ if ($tweakGeneralExplorerAndOther) {
 	# Desktop background type set to 'Picture'
 	Set-ItemProperty -Path $themeReg -Name BackgroundType -Value 1
 
+	# Lock screen background type set to 'Picture'
+	Set-ItemProperty -Path $lockReg -Name "LockScreenType" -Type DWord -Value 1
+
 	# Set desktop wallpaper picture
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
-	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0#>
+	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
 
 	#$lockReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 	#$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
 	#$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
 	#$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
-	# Lock screen background type set to 'Picture'
-	#Set-ItemProperty -Path $lockReg -Name "LockScreenType" -Type DWord -Value 1
 	# Set lock screen wallpaper picture
 	#Set-ItemProperty -Path $lockReg -Name "LockScreenImagePath" -Value $lockWallpaperPath
 	#Set-ItemProperty -Path $lockReg -Name "LockScreenImageStatus" -Value 1
