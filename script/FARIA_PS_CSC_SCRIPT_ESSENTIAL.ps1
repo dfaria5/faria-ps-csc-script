@@ -568,6 +568,38 @@ if ($tweakGeneralExplorerAndOther) {
 		Write-Host "Failed to set per-user lockscreen: $_" -ForegroundColor Yellow
 	}
 
+	# 3) If elevated, also set the machine policy (HKLM) to enforce the lock image (prevents Spotlight overriding).
+	#    This requires admin privileges. If not elevated, this step is skipped.
+	if ([bool](([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+		Try {
+			$polKey = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization'
+			if (-not (Test-Path $polKey)) { New-Item -Path $polKey -Force | Out-Null }
+
+			# Force this image for the lock screen (policy)
+			Set-ItemProperty -Path $polKey -Name "LockScreenImage" -Type String -Value $lockWallpaperPath -Force
+			Write-Host "HKLM policy LockScreenImage set to: $lockWallpaperPath" -ForegroundColor Green
+		} catch {
+			Write-Host "Failed to write HKLM policy for lock screen (requires admin): $_" -ForegroundColor Yellow
+		}
+	} else {
+		Write-Host "Not running elevated: skipping HKLM policy step (recommended for full enforcement)." -ForegroundColor Yellow
+	}
+
+	# 4) Restart LockApp process so the lock UI refreshes quicker (this will be restarted automatically by the system)
+	Try {
+		Get-Process -Name LockApp -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+		Start-Sleep -Milliseconds 400
+		Write-Host "Restarted LockApp process (if present)." -ForegroundColor Cyan
+	} catch {
+		Write-Host "Could not restart LockApp: $_" -ForegroundColor Yellow
+	}
+
+	# Note to user
+	Write-Host "`nNotes:" -ForegroundColor Cyan
+	Write-Host " - Desktop wallpaper has been set and Explorer restarted." -ForegroundColor Cyan
+	Write-Host " - Lock screen image was set per-user. If you ran elevated the policy under HKLM was also set to enforce the image." -ForegroundColor Cyan
+	Write-Host " - Some changes (lock-screen UI and Settings page display of Spotlight) may still require you to lock the machine (Win+L) or sign out/sign in to be fully reflected in every UI place." -ForegroundColor Yellow
+
 	<#$desktopReg = "HKCU:\Control Panel\Desktop"
 	$lockReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
