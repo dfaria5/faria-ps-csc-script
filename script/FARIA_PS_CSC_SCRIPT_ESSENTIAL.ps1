@@ -503,59 +503,65 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
-
-	# Must run as the user (not elevated)
-	# Remove machine-level policy-style keys that cause the banner
-	$policyKeys = @(
-		"HKLM:\Software\Microsoft\Windows\Personalization",
-		"HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
-	)
-	foreach ($k in $policyKeys) {
-		if (Test-Path $k) {
-			Remove-Item -Path $k -Recurse -Force
-			Write-Host "Removed policy-like key: $k"
-		}
-	}
-
-	# Now set wallpapers purely in user scope
+	
+	# --- Registry Paths ---
 	$desktopReg = "HKCU:\Control Panel\Desktop"
 	$themeReg   = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
-	# Detect light/dark mode
+	# --- Determine light/dark mode ---
 	$isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
-	if ([int](Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuildNumber -ge 22000) {
+	# --- Choose wallpapers based on OS and mode ---
+	if ($osInfo.CurrentBuildNumber -ge 22000) {
+		# Windows 11
 		if ($isLightMode -eq 1) {
-			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+			$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
 			$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
 		} else {
-			$wallpaperPath     = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+			$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
 			$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
 		}
-	} else {
-		$wallpaperPath     = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
+	}
+	else {
+		# Windows 10
+		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
 		$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
 	}
 
-	# Set desktop wallpaper
+	# --- Desktop wallpaper ---
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
 	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
 
-	# Refresh desktop
-	rundll32.exe user32.dll, UpdatePerUserSystemParameters
+	# --- Lock screen wallpaper ---
+	Write-Host "`nApplying lock screen wallpaper..." -ForegroundColor Cyan
 
-	# Set lock screen wallpaper (non-policy)
 	try {
+		# Use the clean WinRT API (no policy banner)
 		Add-Type -AssemblyName System.Runtime.WindowsRuntime
-		$sf = [Windows.Storage.StorageFile]::GetFileFromPathAsync($lockWallpaperPath).AsTask().GetAwaiter().GetResult()
-		[Windows.System.UserProfile.LockScreen]::SetImageFileAsync($sf).AsTask().GetAwaiter().GetResult()
-		Write-Host "Lock screen image applied via WinRT API"
-	} catch {
-		Write-Host "Failed to apply lock screen via WinRT API: $_"
+		$file = [Windows.Storage.StorageFile]::GetFileFromPathAsync($lockWallpaperPath).AsTask().GetAwaiter().GetResult()
+		[Windows.System.UserProfile.LockScreen]::SetImageFileAsync($file).AsTask().GetAwaiter().GetResult()
+		Write-Host "✅ Lock screen wallpaper applied using WinRT API (no policy mode)." -ForegroundColor Green
+	}
+	catch {
+		Write-Host "⚠️ WinRT method failed, falling back to registry method..." -ForegroundColor Yellow
+		
+		# Fallback registry (may show 'Managed by your organization')
+		New-Item -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Force | Out-Null
+		$lockReg = "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImagePath" -Value $lockWallpaperPath
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImageUrl" -Value $lockWallpaperPath
+		Set-ItemProperty -Path $lockReg -Name "LockScreenImageStatus" -Type DWord -Value 1
+		Write-Host "✅ Lock screen wallpaper applied via registry CSP fallback." -ForegroundColor Yellow
 	}
 
-	Write-Host "All done. No machine-level policy keys were used."
+	# --- Optional cleanup (remove policy keys to clear banner) ---
+	Start-Sleep -Seconds 2
+	if (Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP") {
+		Remove-Item -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Recurse -Force -ErrorAction SilentlyContinue
+		Write-Host "🧹 Removed policy keys to prevent 'managed by organization' message." -ForegroundColor DarkCyan
+	}
 	
 	# Set desktop and lockscreen wallpaper
 	<#$desktopReg = "HKCU:\Control Panel\Desktop"
