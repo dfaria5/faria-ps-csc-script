@@ -458,6 +458,41 @@ if ($setPowerPlanUltimate) {
             Write-Warning "Failed to set power plan timeout values. $_"
         }
     }
+	
+	# Get all network adapters, including hidden or disabled
+	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
+
+	foreach ($adapter in $netAdapters) {
+    Write-Host "Processing: $($adapter.Name)" -ForegroundColor Yellow
+
+		try {
+			# Disable device power saving via registry
+			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
+			$subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
+			
+			foreach ($key in $subKeys) {
+				$driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
+				if ($driverDesc -eq $adapter.InterfaceDescription) {
+					Write-Host "  Found registry key for: $driverDesc" -ForegroundColor Green
+
+					# Disable "Allow computer to turn off this device to save power"
+					Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force -ErrorAction SilentlyContinue
+
+					# Disable "Only allow a magic packet to wake the computer"
+					if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
+						Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force
+					}
+
+					# Disable wake functionality via powercfg
+					powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
+					Write-Host "  Power management and wake settings disabled." -ForegroundColor Green
+				}
+			}
+		}
+		catch {
+			Write-Host "  ⚠️ Failed to update $($adapter.Name): $_" -ForegroundColor Red
+		}
+	}
 }
 
 # ========================
@@ -503,15 +538,10 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
-	
+
 	# Set desktop and lockscreen wallpaper
 	$desktopReg = "HKCU:\Control Panel\Desktop"
 	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-
-	#New-Item -Path "HKLM:\Software\Microsoft\Windows\Personalization" -Force | Out-Null
-	#New-Item -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Force | Out-Null
-	#$lockReg1 = "HKLM:\Software\Microsoft\Windows\Personalization"
-	#$lockReg2 = "HKLM:\Software\Microsoft\Windows\CurrentVersion\PersonalizationCSP"
 
 	# Determine dark mode (1 = light mode, 0 = dark mode)
     $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
@@ -520,16 +550,13 @@ if ($tweakGeneralExplorerAndOther) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-			#$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
         } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
-			#$lockWallpaperPath = "C:\Windows\Web\Screen\img100.jpg"
         }
 	}
 	else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-		#$lockWallpaperPath = "C:\Windows\Web\Screen\img104.jpg"
 	}
 
 	# Desktop background type set to 'Picture'
@@ -539,15 +566,6 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
 	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-
-	# Set lockscreen wallpaper picture
-	#Set-ItemProperty -Path $lockReg1 -Name "LockScreenImage" -Value $lockWallpaperPath
-	#Set-ItemProperty -Path $lockReg2 -Name "LockScreenImageStatus" -Type DWord -Value 1 -Force
-	#Set-ItemProperty -Path $lockReg2 -Name "LockScreenImagePath" -Value $lockWallpaperPath
-	#Set-ItemProperty -Path $lockReg2 -Name "LockScreenImageUrl" -Value $lockWallpaperPath
-
-	# Lock screen background type set to 'Picture'
-	#Set-ItemProperty -Path $lockReg -Name "LockScreenType" -Type DWord -Value 1
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
