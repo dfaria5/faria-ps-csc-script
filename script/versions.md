@@ -1,7 +1,6 @@
-## Faria Powershell Custom Setup Config Script Versions [WIP]
+## Faria Powershell Custom Setup Config Script - All Version Details [WIP]
 This text file includes all the details and configurations about each version of the script.
 
-## Versions
 ### Full Clean Version
 
 ### Essential Version
@@ -38,6 +37,12 @@ This text file includes all the details and configurations about each version of
     - Power plan set to Ultimate Performance.
     - Timeouts set to never.
     - Disable hard disk turning off by setting the value to 0.
+  - Advanced system settings, Performance Settings.
+    - Show thumbnails instead of icons.
+    - Show translucent selection rectangle.
+    - Show window contents while dragging.
+    - Smooth edges of screen fonts.
+    - Use drop shadows for icon labels on the desktop.
   - Enables legacy component DirectPlay.
   - Show Verbose Status (display more additional information when booting or shutting down and logging in or logging out Windows)
 - Installs programs.
