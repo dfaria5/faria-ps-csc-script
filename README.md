@@ -8,14 +8,6 @@ Here's what the current script available will do.
 - Windows 10 (Last Tested Win Version: 22H2)
 
 ### Versions
-|  | Full Clean | Essential | Personal Rig |
-| --- | --- | --- | --- |
-| Uninstall Bloat | Yes :heavy_check_mark: | Partially :grey_exclamation: (MS Store and Xbox App remain) | Partially :grey_exclamation: (*same as Essential*) |
-| Disable Microsoft Telemetry | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
-| Optimize Services | Yes :heavy_check_mark: | Yes :heavy_check_mark: (Services from MS Store and Xbox App are set to Manual) | Yes :heavy_check_mark: (*same as Essential*) |
-| Custom Set Preferences | Yes :heavy_check_mark: | Yes :heavy_check_mark: | Yes :heavy_check_mark: |
-| Installs Apps | No :x: | Yes :heavy_check_mark: (see details bellow) | Yes :heavy_check_mark: (see details bellow) |
-
 See full details about each version [**here**](script/versions.md).
 
 ## Usage
