@@ -492,6 +492,14 @@ if ($setPowerPlanUltimate) {
 		catch {
 			Write-Host "  ⚠️ Failed to update $($adapter.Name): $_" -ForegroundColor Red
 		}
+
+		# Set manual DNS (9.9.9.9 + 1.1.1.1)
+        try {
+            Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
+            Write-Host "  DNS set to 9.9.9.9 and 1.1.1.1." -ForegroundColor Cyan
+        } catch {
+            Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red
+        }
 	}
 }
 
@@ -736,4 +744,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
+
 }
