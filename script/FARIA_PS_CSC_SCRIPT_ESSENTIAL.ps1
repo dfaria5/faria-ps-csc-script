@@ -259,6 +259,24 @@ if ($manageServices) {
     Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
 
     $manualServices = @(
+		"SysMain",               		# Superfetch/Prefetch
+		"TrkWks",                		# Distributed Link Tracking
+		"wercplsupport",         		# Problem Reports
+		"BthAvctpSvc",           		# Bluetooth Audio/Video
+		"WpnService",            		# Windows Push Notifications
+		"WpnUserService"         		# Notifications per-user
+		"tcsd",         				## Cellular Time (sometimes 'tzautoupdate')
+		"CldFlt",       				# Cloud Backup/Restore
+		"CDPUserSvc*",  				## Connected Devices Platform
+		"PimIndexMaintenanceSvc*", 		## Contact Data
+		"Netlogon",     				# Netlogon (not in workgroup)
+		"PrintWorkflowUserSvc*", 		## Print Device Config
+		"TermService",  				# Remote Desktop Services
+		"LanmanServer",					# Server
+		"shpamsvc",     				# Shared PC Account Manager
+		"sdclt",        				## Windows Backup
+		"WSearch",      				# Search Indexing
+		"WwanSvc",       				# WWAN AutoConfig
         "ALG",
 		"AppIDSvc",
 		"AppMgmt",
@@ -465,12 +483,6 @@ if ($manageServices) {
     )
 
     $disableServices = @(
-        "AJRouter",
-		"AppVClient",
-		"AssignedAccessManagerSvc",
-		"BTAGService",
-		"DialogBlockingService",
-        "NetTcpPortSharing",
 		"DiagTrack",				# Connected User Experiences and Telemetry
 		"dmwappushservice",     	# WAP Push Messaging
 		"RetailDemo",   			# Retail Demo
@@ -480,18 +492,27 @@ if ($manageServices) {
 		"MessagingService",      	# SMS Routing
 		"PhoneSvc",     			# Phone Service
 		"PrintNotify",           	# Printer Notifications
-		"RemoteAccess",
-		"RemoteRegistry",
+        "Spooler",               	# Print Spooler
+		"WalletService",			# Microsoft Wallet
+		"wisvc",        			# Insider Service
+		"AJRouter",
+		"AppVClient",
+		"AssignedAccessManagerSvc",
+		"BTAGService",
+		"DialogBlockingService",
+        "NetTcpPortSharing",
 		"UevAgentService",
 		"ssh-agent",
 		"tzautoupdate",
         "uhssvc",
-		"WinRM",
 		"WebClient",
 		"edgeupdate",
 		"edgeupdatem"
     )
 
+	# "WinRM",					# Windows Remote Management
+	# "RemoteAccess",			# Routing and Remote Access
+	# "RemoteRegistry",			# Security risk
 	# "SharedAccess",          	# Internet Connection Sharing
 
     foreach ($svc in $manualServices) {
@@ -522,111 +543,6 @@ if ($manageServices) {
         }
     }
 }
-
-# ========================
-# OPTIMIZING SERVICES
-# ========================
-<#if ($manageServices) {
-    Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
-
-    # Services set to manual (safe so the service will only start when it actually needs it)
-	$manualServices = @(
-		"SysMain",               		# Superfetch/Prefetch
-		"TrkWks",                		# Distributed Link Tracking
-		# "TabletInputService",    		# Touch/pen input -- NOT WORKING ( WARNING: Could not change TabletInputService (Service TabletInputService was not found on computer '.'.) )
-		"DiagSvc",               		# Diagnostic Execution
-		"wercplsupport",         		# Problem Reports
-		"BTAGService",           		# Bluetooth Audio Gateway
-		"BthAvctpSvc",           		# Bluetooth Audio/Video
-		"bthserv",               		# Core Bluetooth
-		# "NgcCtnrSvc",            		# Microsoft Passport Container -- NOT WORKING ( WARNING: Could not change NgcCtnrSvc (Service 'Microsoft Passport Container (NgcCtnrSvc)' cannot be configured due to the following error: Access is denied) )
-		# "NgcSvc",                		# Microsoft Passport -- NOT WORKING ( WARNING: Could not change NgcSvc (Service 'Microsoft Passport (NgcSvc)' cannot be configured due to the following error: Access is denied) )
-		"WpnService",            		# Windows Push Notifications
-		"WpnUserService"         		# Notifications per-user
-		"AxInstSV",     				# ActiveX Installer
-		"BDESVC",       				# BitLocker Drive Encryption
-		# "tcsd",         				# Cellular Time (sometimes 'tzautoupdate') -- NOT WORKING ( WARNING: Could not change tcsd (Service tcsd was not found on computer '.'.) )
-		"CertPropSvc",  				# Certificate Propagation
-		"CldFlt",       				# Cloud Backup/Restore
-		# "CDPUserSvc*",  				# Connected Devices Platform -- NOT WORKING ( WARNING: Could not change CDPUserSvc* (Service CDPUserSvc* was not found on computer '.'.) )
-		# "PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PimIndexMaintenanceSvc* (Service PimIndexMaintenanceSvc* was not found on computer '.'.) )
-		"lfsvc",        				# Geolocation
-		"SmsRouter",    				# SMS Router
-		"Netlogon",     				# Netlogon (not in workgroup)
-		"WpcMonSvc",    				# Parental Controls
-		"SEMgrSvc",     				# Payments & NFC
-		# "PrintWorkflowUserSvc*", 		# Print Device Config -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
-		"QWAVE",        				# Quality Windows Audio Video Experience
-		"RmSvc",        				# Radio Management
-		"RasAuto",      				# Remote Access Auto Connection
-		"RasMan",       				# Remote Access Connection Manager
-		"TermService",  				# Remote Desktop Services
-		"SessionEnv",   				# RDS Config
-		"UmRdpService", 				# RDS Redirector
-		"seclogon",     				# Secondary Logon
-		"SensorDataService",
-		"SensrSvc",     				# Sensor Monitoring
-		"SensorService",
-		"LanmanServer",					# Server
-		"shpamsvc",     				# Shared PC Account Manager
-		"SCardSvr",     				# Smart Card
-		"ScDeviceEnum", 				# Smart Card Device Enum
-		"SCPolicySvc",  				# Smart Card Removal Policy
-		"lmhosts",      				# TCP/IP NetBIOS Helper
-		"TapiSrv",      				# Telephony
-		"vds",          				# Virtual Disk
-		"VSS",          				# Volume Shadow Copy
-		# "sdclt",        				# Windows Backup -- NOT WORKING ( WARNING: Could not change sdclt (Service sdclt was not found on computer '.'.) )
-		"WbioSrvc",     				# Biometric
-		"FrameServer",  				# Camera Frame Server
-		"Wcncsvc",      				# Windows Connect Now
-		"stisvc",       				# WIA (Scanner service)
-		"icssvc",       				# Mobile Hotspot
-		"WinRM",        				# Windows Remote Management
-		"WSearch",      				# Search Indexing
-		"WorkFoldersSvc",
-		"WwanSvc",       				# WWAN AutoConfig
-		"XblAuthManager",
-		"XblGameSave",
-		"XboxGipSvc",
-		"XboxNetApiSvc"
-	)
-
-	# Services set to disable (no need for these since they do nothing and they are just bloat and waste cpu usage)
-	$disableServices = @(
-		"DiagTrack",				# Connected User Experiences and Telemetry
-		"dmwappushservice",     	# WAP Push Messaging
-		"RetailDemo",   			# Retail Demo
-		"WMPNetworkSvc",			# WMP Network Sharing
-		"Fax",                   	# Fax service -- NOT WORKING ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) ) -- still on win10
-		"MapsBroker",   			# Downloaded Maps Manager
-		"MessagingService",      	# SMS Routing
-		"PhoneSvc",     			# Phone Service
-		"PrintNotify",           	# Printer Notifications
-		"RemoteAccess",          	# Routing and Remote Access
-		"RemoteRegistry", 			# Security risk
-		"SharedAccess",          	# Internet Connection Sharing
-		"Spooler",               	# Print Spooler
-		"WalletService",			# Microsoft Wallet
-		"wisvc"        				# Insider Service
-	)
-
-	# Apply Manual
-	foreach ($svc in $manualServices) {
-		try {
-			Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
-			Write-Host "Status: Set $svc to Manual" -ForegroundColor Yellow
-		} catch { Write-Warning "Could not change $svc ($_)" }
-	}
-
-	# Apply Disabled
-	foreach ($svc in $disableServices) {
-		try {
-			Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
-			Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
-		} catch { Write-Warning "Could not change $svc ($_)" }
-	}
-}#>
 
 # ========================
 # POWER PLAN: ULTIMATE PERFORMANCE
