@@ -81,7 +81,7 @@ $ErrorActionPreference = "SilentlyContinue"
 # 1. REMOVE UNWANTED/BLOAT APPS
 # ========================
 if ($removeApps) {
-    Write-Host "Status: Uninstalling unwanted/bloat apps..." -ForegroundColor Cyan
+    Write-Host "[Status]: Uninstalling unwanted/bloat apps..." -ForegroundColor Cyan
 
     $apps = @(
         "Microsoft.3DBuilder",
@@ -242,7 +242,7 @@ if ($removeApps) {
 # DISABLE TELEMETRY
 # ========================
 if ($disableTelemetry) {
-    Write-Host "Status: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor Cyan
+    Write-Host "[Status]: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor Cyan
     New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name AllowTelemetry -Value 0 -Type DWord
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name Enabled -Value 0
@@ -256,7 +256,7 @@ if ($disableTelemetry) {
 # OPTIMIZING SERVICES
 # ========================
 if ($manageServices) {
-    Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
+    Write-Host "[Status]: Optimizing services..." -ForegroundColor Cyan
 
     $manualServices = @(
 		"SysMain",               		# Superfetch/Prefetch
@@ -522,7 +522,7 @@ if ($manageServices) {
         } catch {
             try {
                 sc.exe config $svc start= demand | Out-Null
-                Write-Host "Set $svc to Manual (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "Status: Set $svc to Manual (via sc.exe)" -ForegroundColor Yellow
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
@@ -536,7 +536,7 @@ if ($manageServices) {
         } catch {
             try {
                 sc.exe config $svc start= disabled | Out-Null
-                Write-Host "Set $svc to Disabled (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "Status: Set $svc to Disabled (via sc.exe)" -ForegroundColor Yellow
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
@@ -548,7 +548,8 @@ if ($manageServices) {
 # POWER PLAN: ULTIMATE PERFORMANCE
 # ========================
 if ($setPowerPlanUltimate) {
-    Write-Host "Status: Setting Ultimate Performance power plan..." -ForegroundColor Cyan
+    Write-Host "[Status]: Setting power management options..." -ForegroundColor Cyan
+	Write-Host "Status: Setting Ultimate Performance power plan..." -ForegroundColor Yellow
 
     $regPath      = "HKCU:\Software\F_PS_CSC_S"
     $regName      = "UltimatePlanGUID"
@@ -646,11 +647,13 @@ if ($setPowerPlanUltimate) {
         }
     }
 	
+	Write-Host "Status: Changing power settings for network adapters..." -ForegroundColor Yellow
+
 	# Get all network adapters, including hidden or disabled
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
 	foreach ($adapter in $netAdapters) {
-    Write-Host "Processing: $($adapter.Name)" -ForegroundColor Yellow
+    Write-Host "Status: $($adapter.Name)" -ForegroundColor Yellow
 
 		try {
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
@@ -665,7 +668,7 @@ if ($setPowerPlanUltimate) {
 
 					# Disable "Only allow a magic packet to wake the computer"
 					if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
-						Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force
+						Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
 					}
 
 					# Disable wake functionality via powercfg
@@ -689,7 +692,7 @@ if ($setPowerPlanUltimate) {
 # FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
 # ========================
 if ($tweakGeneralExplorerAndOther) {
-    Write-Host "Status: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
+    Write-Host "[Status]: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
 
     # Basic Explorer tweaks
 	Write-Host "Status: Configuring file explorer settings..." -ForegroundColor Yellow
@@ -856,7 +859,7 @@ if ($tweakGeneralExplorerAndOther) {
 # INSTALL ESSENTIAL APPS
 # ========================
 if ($installapps) {
-    Write-Host "Status: Installing new apps..." -ForegroundColor Cyan
+    Write-Host "[Status]: Installing new apps..." -ForegroundColor Cyan
 
     # List of apps to install
     $apps = @(
