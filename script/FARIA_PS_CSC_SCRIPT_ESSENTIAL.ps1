@@ -499,7 +499,12 @@ if ($manageServices) {
             Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
             Write-Host "Status: Set $svc to Manual" -ForegroundColor Yellow
         } catch {
-            Write-Warning "Could not change $svc ($_)" 
+            try {
+                sc.exe config $svc start= demand | Out-Null
+                Write-Host "Set $svc to Manual (via sc.exe)" -ForegroundColor Yellow
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
         }
     }
 
@@ -508,7 +513,12 @@ if ($manageServices) {
             Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
             Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
         } catch {
-            Write-Warning "Could not change $svc ($_)" 
+            try {
+                sc.exe config $svc start= disabled | Out-Null
+                Write-Host "Set $svc to Disabled (via sc.exe)" -ForegroundColor Yellow
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
         }
     }
 }
@@ -748,7 +758,7 @@ if ($setPowerPlanUltimate) {
 			}
 		}
 		catch {
-			# Write-Host "  ⚠️ Failed to update $($adapter.Name): $_" -ForegroundColor Red
+			# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red
 		}
 
         try {
