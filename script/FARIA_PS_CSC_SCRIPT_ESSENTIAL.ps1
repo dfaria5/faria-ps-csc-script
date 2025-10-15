@@ -258,11 +258,272 @@ if ($disableTelemetry) {
 if ($manageServices) {
     Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
 
+    $manualServices = @(
+        "ALG",
+		"AppIDSvc",
+		"AppMgmt",
+		"AppReadiness",
+		"AppXSvc",
+		"Appinfo",
+		"AudioEndpointBuilder",
+        "AudioSrv",
+		"Audiosrv",
+		"AxInstSV",
+		"BDESVC",
+		"BFE",
+		"BcastDVRUserService_*",
+		"BluetoothUserService_*",
+        "Browser",
+		"BthHFSrv",
+		"CDPSvc",
+		"CDPUserSvc_*",
+		"COMSysApp",
+		"CaptureService_*",
+		"CertPropSvc",
+        "ClipSVC",
+		"ConsentUxUserSvc_*",
+		"CoreMessagingRegistrar",
+		"CredentialEnrollmentManagerUserSvc_*",
+        "CryptSvc",
+		"CscService",
+		"DPS",
+		"DcomLaunch",
+		"DcpSvc",
+		"DevQueryBroker",
+		"DeviceAssociationBrokerSvc_*",
+        "DeviceAssociationService",
+		"DeviceInstall",
+		"DevicePickerUserSvc_*",
+		"DevicesFlowUserSvc_*",
+		"Dhcp",
+        "DispBrokerDesktopSvc",
+		"DisplayEnhancementService",
+		"DmEnrollmentSvc",
+		"EFS",
+		"EapHost",
+		"EntAppSvc",
+        "EventLog",
+		"EventSystem",
+		"FDResPub",
+		"FontCache",
+		"FrameServer",
+		"FrameServerMonitor",
+		"GraphicsPerfSvc",
+        "HomeGroupListener",
+		"HomeGroupProvider",
+		"HvHost",
+		"IEEtwCollectorService",
+		"IKEEXT",
+		"InstallService",
+        "InventorySvc",
+		"IpxlatCfgSvc",
+		"KtmRm",
+		"LanmanWorkstation",
+		"LicenseManager",
+		"LxpSvc",
+		"MSDTC",
+		"MSiSCSI",
+        "McpManagementService",
+		"MicrosoftEdgeElevationService",
+		"MixedRealityOpenXRSvc",
+		"MsKeyboardFilter",
+        "NaturalAuthentication",
+		"NcaSvc",
+		"NcbService",
+		"NcdAutoSetup",
+		"NetSetupSvc",
+		"Netman",
+		"NgcCtnrSvc",
+        "NgcSvc",
+		"P9RdrService_*",
+		"PNRPAutoReg",
+		"PNRPsvc",
+		"PeerDistSvc",
+		"PenService_*",
+		"PerfHost",
+        "PimIndexMaintenanceSvc_*",
+		"PlugPlay",
+		"PolicyAgent",
+		"PrintWorkflowUserSvc_*",
+		"ProfSvc",
+		"PushToInstall",
+        "QWAVE",
+		"RasAuto",
+		"RasMan",
+		"RmSvc",
+		"RpcLocator",
+		"SCPolicySvc",
+		"SCardSvr",
+		"SDRSVC",
+		"SEMgrSvc",
+        "SNMPTRAP",
+		"SNMPTrap",
+		"ScDeviceEnum",
+		"Schedule",
+		"Sense",
+		"SensorDataService",
+		"SensorService",
+        "SensrSvc",
+		"SessionEnv",
+		"SharedRealitySvc",
+		"ShellHWDetection",
+		"SmsRouter",
+		"SstpSvc",
+		"StiSvc",
+        "StorSvc",
+		"TapiSrv",
+		"Themes",
+		"TieringEngineService",
+		"TimeBroker",
+		"TimeBrokerSvc",
+		"TokenBroker",
+        "TroubleshootingSvc",
+		"TrustedInstaller",
+		"UI0Detect",
+		"UdkUserSvc_*",
+		"UmRdpService",
+		"UnistoreSvc_*",
+        "UserDataSvc_*",
+		"UsoSvc",
+		"VSS",
+		"VacSvc",
+		"W32Time",
+		"WFDSConMgrSvc",
+		"WManSvc",
+		"WPDBusEnum",
+		"WSService",
+        "WaaSMedicSvc",
+		"WarpJITSvc",
+		"WbioSrvc",
+		"WcsPlugInService",
+		"WdNisSvc",
+		"WdiServiceHost",
+		"WdiSystemHost",
+        "WebClient",
+		"Wecsvc",
+		"WerSvc",
+		"WiaRpc",
+		"WinHttpAutoProxySvc",
+		"WinRM",
+		"WlanSvc",
+		"WpcMonSvc",
+		"XblAuthManager",
+        "XblGameSave",
+		"XboxGipSvc",
+		"XboxNetApiSvc",
+		"autotimesvc",
+		"bthserv",
+		"camsvc",
+		"cloudidsvc",
+		"dcsvc",
+        "defragsvc",
+		"diagnosticshub.standardcollector.service",
+		"diagsvc",
+		"dot3svc",
+		"edgeupdate",
+		"edgeupdatem",
+        "embeddedmode",
+		"fdPHost",
+		"fhsvc",
+		"hidserv",
+		"icssvc",
+		"lfsvc",
+		"lltdsvc",
+		"lmhosts",
+		"msiserver",
+		"netprofm",
+        "p2pimsvc",
+		"p2psvc",
+		"perceptionsimulation",
+		"pla",
+		"seclogon",
+		"smphost",
+		"spectrum",
+		"svsvc",
+		"swprv",
+        "tiledatamodelsvc",
+		"upnphost",
+		"vds",
+		"vm3dservice",
+		"vmicguestinterface",
+		"vmicheartbeat",
+		"vmickvpexchange",
+        "vmicrdv",
+		"vmicshutdown",
+		"vmictimesync",
+		"vmicvmsession",
+		"vmicvss",
+		"wbengine",
+		"wcncsvc",
+		"webthreatdefsvc",
+        "wlidsvc",
+		"wlpasvc",
+		"wmiApSrv",
+		"workfolderssvc",
+		"wuauserv",
+		"wudfsvc"
+    )
+
+    $disableServices = @(
+        "AJRouter",
+		"AppVClient",
+		"AssignedAccessManagerSvc",
+		"BTAGService",
+		"DialogBlockingService",
+        "NetTcpPortSharing",
+		"DiagTrack",				# Connected User Experiences and Telemetry
+		"dmwappushservice",     	# WAP Push Messaging
+		"RetailDemo",   			# Retail Demo
+		"WMPNetworkSvc",			# WMP Network Sharing
+		"Fax",                   	# Fax service -- NOT WORKING WIN11 ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) ) -- only still on win10
+		"MapsBroker",   			# Downloaded Maps Manager
+		"MessagingService",      	# SMS Routing
+		"PhoneSvc",     			# Phone Service
+		"PrintNotify",           	# Printer Notifications
+		"RemoteAccess",
+		"RemoteRegistry",
+		"UevAgentService",
+		"ssh-agent",
+		"tzautoupdate",
+        "uhssvc",
+		"WinRM",
+		"WebClient",
+		"edgeupdate",
+		"edgeupdatem"
+    )
+
+	# "SharedAccess",          	# Internet Connection Sharing
+
+    foreach ($svc in $manualServices) {
+        try {
+            Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
+            Write-Host "Status: Set $svc to Manual" -ForegroundColor Yellow
+        } catch {
+            Write-Warning "Could not change $svc ($_)" 
+        }
+    }
+
+    foreach ($svc in $disableServices) {
+        try {
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
+            Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
+        } catch {
+            Write-Warning "Could not change $svc ($_)" 
+        }
+    }
+}
+
+# ========================
+# OPTIMIZING SERVICES
+# ========================
+<#if ($manageServices) {
+    Write-Host "Status: Optimizing services..." -ForegroundColor Cyan
+
     # Services set to manual (safe so the service will only start when it actually needs it)
 	$manualServices = @(
 		"SysMain",               		# Superfetch/Prefetch
 		"TrkWks",                		# Distributed Link Tracking
-		"TabletInputService",    		# Touch/pen input -- NOT WORKING ( WARNING: Could not change TabletInputService (Service TabletInputService was not found on computer '.'.) )
+		# "TabletInputService",    		# Touch/pen input -- NOT WORKING ( WARNING: Could not change TabletInputService (Service TabletInputService was not found on computer '.'.) )
 		"DiagSvc",               		# Diagnostic Execution
 		"wercplsupport",         		# Problem Reports
 		"BTAGService",           		# Bluetooth Audio Gateway
@@ -278,7 +539,7 @@ if ($manageServices) {
 		"CertPropSvc",  				# Certificate Propagation
 		"CldFlt",       				# Cloud Backup/Restore
 		# "CDPUserSvc*",  				# Connected Devices Platform -- NOT WORKING ( WARNING: Could not change CDPUserSvc* (Service CDPUserSvc* was not found on computer '.'.) )
-		# "PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PrintWorkflowUserSvc* (Service PrintWorkflowUserSvc* was not found on computer '.'.) )
+		# "PimIndexMaintenanceSvc*", 		# Contact Data -- NOT WORKING ( WARNING: Could not change PimIndexMaintenanceSvc* (Service PimIndexMaintenanceSvc* was not found on computer '.'.) )
 		"lfsvc",        				# Geolocation
 		"SmsRouter",    				# SMS Router
 		"Netlogon",     				# Netlogon (not in workgroup)
@@ -355,7 +616,7 @@ if ($manageServices) {
 			Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
 		} catch { Write-Warning "Could not change $svc ($_)" }
 	}
-}
+}#>
 
 # ========================
 # POWER PLAN: ULTIMATE PERFORMANCE
@@ -466,14 +727,12 @@ if ($setPowerPlanUltimate) {
     Write-Host "Processing: $($adapter.Name)" -ForegroundColor Yellow
 
 		try {
-			# Disable device power saving via registry
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
 			$subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
 			
 			foreach ($key in $subKeys) {
 				$driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
 				if ($driverDesc -eq $adapter.InterfaceDescription) {
-					Write-Host "  Found registry key for: $driverDesc" -ForegroundColor Green
 
 					# Disable "Allow computer to turn off this device to save power"
 					Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force -ErrorAction SilentlyContinue
@@ -485,20 +744,17 @@ if ($setPowerPlanUltimate) {
 
 					# Disable wake functionality via powercfg
 					powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
-					Write-Host "  Power management and wake settings disabled." -ForegroundColor Green
 				}
 			}
 		}
 		catch {
-			Write-Host "  ⚠️ Failed to update $($adapter.Name): $_" -ForegroundColor Red
+			# Write-Host "  ⚠️ Failed to update $($adapter.Name): $_" -ForegroundColor Red
 		}
 
-		# Set manual DNS (9.9.9.9 + 1.1.1.1)
         try {
             Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-            Write-Host "  DNS set to 9.9.9.9 and 1.1.1.1." -ForegroundColor Cyan
         } catch {
-            Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red
+            # Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red
         }
 	}
 }
@@ -744,5 +1000,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
-
 }
