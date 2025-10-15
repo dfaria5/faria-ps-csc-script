@@ -1,8 +1,6 @@
 ## Faria Powershell Custom Setup Config Script - All Version Details [WIP]
 This text file includes all the details and configurations about each version of the script.
 
-### Full Clean Version
-
 ### Essential Version
 - Uninstall bloat windows apps. (Note: does not uninstall Microsoft Store and Xbox App)
   - Media Player.
@@ -54,4 +52,4 @@ This text file includes all the details and configurations about each version of
   - Notepad++
   - VLC Media Player
 
-### Personal Rig Version
+More Versions Soon (planned for now: Full Clean, Essential, Personal Rig)
