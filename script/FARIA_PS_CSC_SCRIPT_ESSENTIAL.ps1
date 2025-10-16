@@ -259,33 +259,32 @@ if ($manageServices) {
     Write-Host "[Status]: Optimizing services..." -ForegroundColor Cyan
 
     $manualServices = @(
-		"SysMain",               		# Superfetch/Prefetch
-		"TrkWks",                		# Distributed Link Tracking
-		"wercplsupport",         		# Problem Reports
-		"BthAvctpSvc",           		# Bluetooth Audio/Video
-		"WpnService",            		# Windows Push Notifications
-		"WpnUserService"         		# Notifications per-user
-		"tcsd",         				## Cellular Time (sometimes 'tzautoupdate')
-		"CldFlt",       				# Cloud Backup/Restore
-		"CDPUserSvc*",  				## Connected Devices Platform
-		"PimIndexMaintenanceSvc*", 		## Contact Data
-		"Netlogon",     				# Netlogon (not in workgroup)
-		"PrintWorkflowUserSvc*", 		## Print Device Config
-		"TermService",  				# Remote Desktop Services
-		"LanmanServer",					# Server
-		"shpamsvc",     				# Shared PC Account Manager
-		"sdclt",        				## Windows Backup
-		"WSearch",      				# Search Indexing
-		"WwanSvc",       				# WWAN AutoConfig
+		"SysMain",
+		"TrkWks",
+		"wercplsupport",
+		"BthAvctpSvc",
+		# "WpnService",
+		# "WpnUserService_*",
+		"tcsd",
+		"CldFlt",
+		"CDPUserSvc*",
+		"PimIndexMaintenanceSvc*",
+		"Netlogon",
+		"PrintWorkflowUserSvc*",
+		"TermService",
+		"LanmanServer",
+		"shpamsvc",
+		"sdclt",
+		"WSearch",
+		"WwanSvc",
         "ALG",
 		"AppIDSvc",
 		"AppMgmt",
 		"AppReadiness",
-		"AppXSvc",
+		# "AppXSvc",
 		"Appinfo",
-		"AudioEndpointBuilder",
-        "AudioSrv",
-		"Audiosrv",
+		# "AudioEndpointBuilder",
+        # "AudioSrv",
 		"AxInstSV",
 		"BDESVC",
 		"BFE",
@@ -294,11 +293,11 @@ if ($manageServices) {
         "Browser",
 		"BthHFSrv",
 		"CDPSvc",
-		"CDPUserSvc_*",
+		# "CDPUserSvc_*",
 		"COMSysApp",
 		"CaptureService_*",
 		"CertPropSvc",
-        "ClipSVC",
+        # "ClipSVC",
 		"ConsentUxUserSvc_*",
 		"CoreMessagingRegistrar",
 		"CredentialEnrollmentManagerUserSvc_*",
@@ -384,16 +383,16 @@ if ($manageServices) {
         "SensrSvc",
 		"SessionEnv",
 		"SharedRealitySvc",
-		"ShellHWDetection",
+		# "ShellHWDetection",
 		"SmsRouter",
 		"SstpSvc",
 		"StiSvc",
         "StorSvc",
 		"TapiSrv",
-		"Themes",
+		# "Themes",
 		"TieringEngineService",
 		"TimeBroker",
-		"TimeBrokerSvc",
+		# "TimeBrokerSvc",
 		"TokenBroker",
         "TroubleshootingSvc",
 		"TrustedInstaller",
@@ -459,7 +458,7 @@ if ($manageServices) {
 		"spectrum",
 		"svsvc",
 		"swprv",
-        "tiledatamodelsvc",
+        # "tiledatamodelsvc",
 		"upnphost",
 		"vds",
 		"vm3dservice",
@@ -487,7 +486,7 @@ if ($manageServices) {
 		"dmwappushservice",
 		"RetailDemo",
 		"WMPNetworkSvc",
-		"Fax",                   	# Fax service -- NOT WORKING WIN11 ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) ) -- only still on win10
+		"Fax",
 		"MapsBroker",
 		"MessagingService",
 		"PhoneSvc",
