@@ -483,18 +483,18 @@ if ($manageServices) {
     )
 
     $disableServices = @(
-		"DiagTrack",				# Connected User Experiences and Telemetry
-		"dmwappushservice",     	# WAP Push Messaging
-		"RetailDemo",   			# Retail Demo
-		"WMPNetworkSvc",			# WMP Network Sharing
+		"DiagTrack",
+		"dmwappushservice",
+		"RetailDemo",
+		"WMPNetworkSvc",
 		"Fax",                   	# Fax service -- NOT WORKING WIN11 ( WARNING: Could not change Fax (Service Fax was not found on computer '.'.) ) -- only still on win10
-		"MapsBroker",   			# Downloaded Maps Manager
-		"MessagingService",      	# SMS Routing
-		"PhoneSvc",     			# Phone Service
-		"PrintNotify",           	# Printer Notifications
-        "Spooler",               	# Print Spooler
-		"WalletService",			# Microsoft Wallet
-		"wisvc",        			# Insider Service
+		"MapsBroker",
+		"MessagingService",
+		"PhoneSvc",
+		"PrintNotify",
+        "Spooler",
+		"WalletService",
+		"wisvc",
 		"AJRouter",
 		"AppVClient",
 		"AssignedAccessManagerSvc",
@@ -545,7 +545,7 @@ if ($manageServices) {
 }
 
 # ========================
-# POWER PLAN: ULTIMATE PERFORMANCE
+# POWER SETTINGS
 # ========================
 if ($setPowerPlanUltimate) {
     Write-Host "[Status]: Setting power management options..." -ForegroundColor Cyan
@@ -653,7 +653,7 @@ if ($setPowerPlanUltimate) {
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
 	foreach ($adapter in $netAdapters) {
-    Write-Host "Status: $($adapter.Name)" -ForegroundColor Yellow
+    # Write-Host "Status: $($adapter.Name)" -ForegroundColor Yellow
 
 		try {
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
@@ -672,19 +672,16 @@ if ($setPowerPlanUltimate) {
 					}
 
 					# Disable wake functionality via powercfg
-					powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
+					# powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
+					Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -RedirectStandardOutput $null -RedirectStandardError $null -NoNewWindow -Wait
 				}
 			}
 		}
-		catch {
-			# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red
-		}
+		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
 
         try {
-            Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-        } catch {
-            # Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red
-        }
+			Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
+		} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
 	}
 }
 
