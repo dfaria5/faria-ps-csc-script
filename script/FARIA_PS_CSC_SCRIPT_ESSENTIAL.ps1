@@ -89,7 +89,7 @@ if ($removeApps) {
         "Microsoft.ZuneMusic",
         "Microsoft.ZuneVideo",
         "Microsoft.MicrosoftSolitaireCollection",
-		"Microsoft.BingSearch"
+		"Microsoft.BingSearch",
 		"Microsoft.549981C3F5F10",		# Part of Cortana
         "Microsoft.Windows.Cortana",
 		"Microsoft.Copilot",
@@ -104,7 +104,7 @@ if ($removeApps) {
         "Microsoft.OneConnect",
         "Microsoft.People",
         "Microsoft.MicrosoftTeams",
-		"MicrosoftTeams"
+		"MicrosoftTeams",
         "Microsoft.MicrosoftTeamsForSurfaceHub",
 		"Microsoft.LinkedIn",
 		"7EE7776C.LinkedInforWindows",
@@ -258,24 +258,28 @@ if ($disableTelemetry) {
 if ($manageServices) {
     Write-Host "[Status]: Optimizing services..." -ForegroundColor Cyan
 
-	# "WpnService",
-	# "WpnUserService_*",
-	# "WSearch",
-	# "AppXSvc",
-	# "AudioEndpointBuilder",
-	# "AudioSrv",
-	# "CDPSvc",
-	# "CDPUserSvc_*",
-	# "ClipSVC",
-	# "DcomLaunch",
-	# "EventLog",
-	# "ProfSvc",
-	# "ShellHWDetection",
-	# "Themes",
-	# "TimeBrokerSvc",
-	# "UnistoreSvc_*",
-	# "UserDataSvc_*",
-	# "tiledatamodelsvc",
+	# Because of the issue before where Start Menu on Windows 11 would take up to a minute or more to start
+	$autoServices = @(
+		"EventLog",
+		"AudioSrv",
+		"AudioEndpointBuilder",
+		"ProfSvc",
+		"AppReadiness",
+		"AppXSvc",
+		"ClipSVC",
+		"ShellHWDetection",
+		"Themes",
+		"WpnService",
+		"WpnUserService_*",
+		"CDPSvc",
+		"CDPUserSvc_*",
+		"UserDataSvc_*",
+		"UnistoreSvc_*",
+		"tiledatamodelsvc",
+		"TimeBrokerSvc",
+		"DcomLaunch",
+		"WSearch"
+	)
 
     $manualServices = @(
 		"Spooler",
@@ -298,7 +302,6 @@ if ($manageServices) {
         "ALG",
 		"AppIDSvc",
 		"AppMgmt",
-		"AppReadiness",
 		"Appinfo",
 		"AxInstSV",
 		"BDESVC",
@@ -514,6 +517,20 @@ if ($manageServices) {
 	# "RemoteAccess",			# Routing and Remote Access
 	# "RemoteRegistry",			# Security risk
 	# "SharedAccess",			# Internet Connection Sharing
+
+	foreach ($svc in $autoServices) {
+        try {
+            Set-Service -Name $svc -StartupType Automatic -ErrorAction Stop
+            Write-Host "Status: Set $svc to Auto Start" -ForegroundColor Yellow
+        } catch {
+            try {
+                sc.exe config $svc start= delayed-auto | Out-Null
+                Write-Host "Status: Set $svc to Auto Start (via sc.exe)" -ForegroundColor Yellow
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
+        }
+    }
 
     foreach ($svc in $manualServices) {
         try {
