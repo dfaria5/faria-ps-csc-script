@@ -73,7 +73,17 @@ Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " 
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
 Write-Host "<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
 
-Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osInfo.ProductName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
+
+if ([int]$osInfo.CurrentBuildNumber -ge 22000) {
+    $osName = "Windows 11"
+} else {
+    $osName = "Windows 10"
+}
+
+$displayVer = $osInfo.DisplayVersion
+if (-not $displayVer) { $displayVer = $osInfo.ReleaseId }
+
+Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
 Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -670,7 +680,7 @@ if ($setPowerPlanUltimate) {
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
 	foreach ($adapter in $netAdapters) {
-    # Write-Host "Status: $($adapter.Name)" -ForegroundColor Yellow
+    Write-Host "Status: Changing network power settings for $($adapter.Name)" -ForegroundColor Yellow
 
 		try {
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
@@ -692,6 +702,7 @@ if ($setPowerPlanUltimate) {
 					# powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
 					Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -RedirectStandardOutput $null -RedirectStandardError $null -NoNewWindow -Wait
 				}
+				Write-Host "Status: Network power settings for $($adapter.Name) set." -ForegroundColor Yellow
 			}
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
@@ -746,7 +757,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
-	# Set desktop and lockscreen wallpaper
+	# Set desktop wallpaper
 	$desktopReg = "HKCU:\Control Panel\Desktop"
 	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
