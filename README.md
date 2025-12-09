@@ -2,7 +2,6 @@
 Simple run powershell custom config script for Windows 10 and 11 that cleans and adjusts some windows settings and apps for new installs.
 
 ## Script
-Here's what the current script available will do.
 ### Supported Windows Versions
 - Windows 11 (Last Tested Win Version: 25H2)
 - Windows 10 (Last Tested Win Version: 22H2)
