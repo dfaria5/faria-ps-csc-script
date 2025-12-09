@@ -140,9 +140,7 @@ if ($removeApps) {
     foreach ($app in $apps) {
         Write-Host "Status: Removing $app..." -ForegroundColor Yellow
 
-		Get-AppxProvisionedPackage -Online |
-			Where-Object { $_.DisplayName -eq $app } |
-			Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
+		Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $app } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
 
 		Get-AppxPackage -Name $app | Remove-AppxPackage -ErrorAction SilentlyContinue | Out-Null
     }
@@ -208,10 +206,7 @@ if ($removeApps) {
 			return
 		}
 
-		$oneDriveSetup = @(
-			"$env:SystemRoot\SysWOW64\OneDriveSetup.exe",
-			"$env:SystemRoot\System32\OneDriveSetup.exe"
-		) | Where-Object { Test-Path $_ -PathType Leaf }
+		$oneDriveSetup = @("$env:SystemRoot\SysWOW64\OneDriveSetup.exe", "$env:SystemRoot\System32\OneDriveSetup.exe") | Where-Object { Test-Path $_ -PathType Leaf }
 
 		if ($oneDriveSetup) {
 			Write-Host "Status: Uninstalling OneDrive..." -ForegroundColor Yellow
@@ -673,7 +668,7 @@ if ($setPowerPlanUltimate) {
             Write-Warning "Failed to set power plan timeout values. $_"
         }
     }
-	
+
 	Write-Host "Status: Changing power settings for network adapters..." -ForegroundColor Yellow
 
 	# Get all network adapters, including hidden or disabled
@@ -685,7 +680,7 @@ if ($setPowerPlanUltimate) {
 		try {
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
 			$subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
-			
+
 			foreach ($key in $subKeys) {
 				$driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
 				if ($driverDesc -eq $adapter.InterfaceDescription) {
@@ -757,33 +752,38 @@ if ($tweakGeneralExplorerAndOther) {
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
-	# Set desktop wallpaper
-	$desktopReg = "HKCU:\Control Panel\Desktop"
-	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-
-	# Determine dark mode (1 = light mode, 0 = dark mode)
-    $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
-
-	if ($osInfo.CurrentBuildNumber -ge 22000) {
-		# Windows 11 default
-		if ($isLightMode -eq 1) {
-            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-        } else {
-            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
-        }
+	# 1. Force picture mode (the only key that still works reliably on every build)
+	if (-not (Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers")) {
+		New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Force | Out-Null
 	}
-	else {
-		# Windows 10 default
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0 -Force
+
+	# 2. Kill Windows Spotlight on the desktop – these keys are normal user keys, no policy red text
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force # Lock-screen Spotlight (optional)
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "RotatingLockScreenEnabled" -Type DWord -Value 0 -Force
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-310093Enabled" -Type DWord -Value 0 -Force
+
+	# 3. Set the actual wallpaper (light/dark detection)
+	if ($osInfo.CurrentBuildNumber -ge 22000) {
+		$lightTheme = (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
+		if ($lightTheme -eq 1) {
+			$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
+		} else {
+			$wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+		}
+	} else {
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
 	}
 
-	# Desktop background type set to 'Picture'
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Wallpaper"       -Value $wallpaperPath -Force
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallpaperStyle" -Value "10" -Force   # Fill
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "TileWallpaper"   -Value "0" -Force
 
-	# Set desktop wallpaper picture
-	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
-	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
+	# 4. Refresh desktop instantly
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	Start-Sleep -Milliseconds 300
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -925,7 +925,8 @@ if ($installapps) {
 		"Apple.QuickTime",
         "7zip.7zip",
         "Notepad++.Notepad++",
-        "VideoLAN.VLC"
+        "VideoLAN.VLC",
+		"XnSoft.XnViewMP"
     )
 
     foreach ($app in $apps) {
