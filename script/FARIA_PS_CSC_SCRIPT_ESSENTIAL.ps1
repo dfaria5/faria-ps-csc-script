@@ -752,19 +752,38 @@ if ($tweakGeneralExplorerAndOther) {
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
-	# 1. Force picture mode (the only key that still works reliably on every build)
+	# 1. Clear Spotlight cache to fix stuck mode (critical for 25H2 bugs)
+	$spotlightPaths = @(
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets",
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\TargetAssets",
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Roaming",
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\Settings",
+		"$env:LocalAppData\Packages\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\LocalCache\Microsoft\IrisService"
+	)
+	foreach ($path in $spotlightPaths) {
+		if (Test-Path $path) {
+			Remove-Item "$path\*" -Recurse -Force -ErrorAction SilentlyContinue
+			Write-Host "Status: Cleared cache at $path" -ForegroundColor Yellow
+		}
+	}
+
+	# 2. Force-disable Spotlight features (expanded for 25H2 persistence)
+	if (-not (Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")) {
+		New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Force | Out-Null
+	}
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight master switch
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force  # Lock screen bleed-over
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "RotatingLockScreenEnabled" -Type DWord -Value 0 -Force
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "RotatingLockScreenOverlayEnabled" -Type DWord -Value 0 -Force
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-310093Enabled" -Type DWord -Value 0 -Force   # Suggested content
+
+	# 3. Force picture mode
 	if (-not (Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers")) {
 		New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Force | Out-Null
 	}
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0 -Force
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0 -Force  # 0 = Picture
 
-	# 2. Kill Windows Spotlight on the desktop – these keys are normal user keys, no policy red text
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force # Lock-screen Spotlight (optional)
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "RotatingLockScreenEnabled" -Type DWord -Value 0 -Force
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-310093Enabled" -Type DWord -Value 0 -Force
-
-	# 3. Set the actual wallpaper (light/dark detection)
+	# 4. Set the actual wallpaper (with light/dark detection)
 	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		$lightTheme = (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 		if ($lightTheme -eq 1) {
@@ -777,13 +796,16 @@ if ($tweakGeneralExplorerAndOther) {
 	}
 
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "Wallpaper"       -Value $wallpaperPath -Force
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallpaperStyle" -Value "10" -Force   # Fill
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallpaperStyle" -Value "10" -Force   # 10 = Fill (or change to 2 for Stretch, 0 for Center, etc.)
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "TileWallpaper"   -Value "0" -Force
 
-	# 4. Refresh desktop instantly
+	# 5. Double-refresh desktop to apply changes (with delay for 25H2 timing issues)
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	Start-Sleep -Milliseconds 300
+	Start-Sleep -Milliseconds 1000  # Increased delay for reliability
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	Stop-Process -Name explorer -Force  # Optional: Full explorer restart if still stuck
+	Start-Sleep -Milliseconds 500
+	Start-Process explorer
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
