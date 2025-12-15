@@ -766,9 +766,9 @@ if ($tweakGeneralExplorerAndOther) {
 	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
-            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-        } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+        } else {
+            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
         }
 	}
 	else {
@@ -975,3 +975,4 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
 
 }
+
