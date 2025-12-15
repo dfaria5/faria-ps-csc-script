@@ -752,44 +752,17 @@ if ($tweakGeneralExplorerAndOther) {
 	# Show Windows build at the bottom right of the desktop
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
 
-	<# if ($osInfo.CurrentBuildNumber -lt 22000) {
-		# Set desktop wallpaper
-		$desktopReg = "HKCU:\Control Panel\Desktop"
-		$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-
-		# Desktop background type set to 'Picture'
-		Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
-
-		# Set desktop wallpaper picture
-		Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-		Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
-		Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-	} else {
-		# Skips this part if the user is on Windows 11.
-	} #>
-
-	# 1. Disable Spotlight (prevents it from overriding – user-level keys only)
+	# Disable Spotlight
 	$cdmPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
 	if (-not (Test-Path $cdmPath)) { New-Item -Path $cdmPath -Force | Out-Null }
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight off
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force  # Lock bleed-over off
 	Set-ItemProperty -Path $cdmPath -Name "RotatingLockScreenEnabled"     -Type DWord -Value 0 -Force
 
-	# 2. Force Solid Color mode
-	$wallpapersPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
-	if (-not (Test-Path $wallpapersPath)) { New-Item -Path $wallpapersPath -Force | Out-Null }
-	Set-ItemProperty -Path $wallpapersPath -Name "BackgroundType" -Type DWord -Value 1 -Force  # 1 = Solid Color
-
-	# 3. Clear any wallpaper path
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
-
-	# 4. Set the actual solid color
-	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force
-
 	# Determine dark mode (1 = light mode, 0 = dark mode)
-    <# $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
+    $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
+	# Set wallpaper path depending of which Windows version
 	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		# Windows 11 default
 		if ($isLightMode -eq 1) {
@@ -801,7 +774,33 @@ if ($tweakGeneralExplorerAndOther) {
 	else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-	} #>
+	}
+
+	<#
+	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
+	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
+	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
+	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
+	#>
+
+	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
+	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
+
+	# DEFAULT WINDOWS WALLPAPER
+	# Wallpaper Mode set to Image
+	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
+	# Set wallpaper
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
+
+	# SOLID COLOR
+	# Wallpaper Mode set to Solid Color
+	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 1 -Force
+	# Clear any wallpaper path
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
+	# Set the actual solid color
+	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -811,7 +810,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Disable News/Weather Widget (Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Type DWord
 
-	# Extra policy enforcement for News/Weather Widget - [Disabled, group policy forced]
+	# Extra policy enforcement for News/Weather Widget - [Disabled, this code uses forced group policy rules basically making the setting unchangeable without commands]
 	<# New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
 	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
@@ -965,7 +964,8 @@ if ($installapps) {
     }
 }
 
-Write-Host "`nScript completed! Its recommended to restart Windows for full effect of all settings to be applied!" -ForegroundColor Green
+#Write-Host "`nScript completed! Its recommended to restart Windows for full effect of all settings to be applied!" -ForegroundColor Green
+Write-Host "`nScript completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor Green
 $restart = Read-Host "Restart your PC now? (Y/N): "
 
 if ($restart -match '^[Yy]$') {
