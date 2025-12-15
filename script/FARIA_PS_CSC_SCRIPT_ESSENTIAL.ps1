@@ -794,13 +794,13 @@ if ($tweakGeneralExplorerAndOther) {
 	# Set wallpaper
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 
-	# SOLID COLOR
+	<# # SOLID COLOR
 	# Wallpaper Mode set to Solid Color
 	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 1 -Force
 	# Clear any wallpaper path
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
 	# Set the actual solid color
-	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force
+	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force #>
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -973,4 +973,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
+
 }
