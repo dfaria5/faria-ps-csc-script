@@ -775,6 +775,11 @@ if ($tweakGeneralExplorerAndOther) {
 	Start-Sleep -Seconds 1
 	Start-Process explorer
 
+	Write-Host "Status: Setting cursor scheme to None (classic XP default cursors)..." -ForegroundColor Yellow
+
+	# Set cursor scheme to "None" (default XP cursors)
+	Set-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(Default)" -Value "" -Force
+
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
 	# Taskbar search display set to icon (Windows 10)
