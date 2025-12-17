@@ -767,6 +767,13 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
 	# Set the actual solid color
 	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force
+	
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	Start-Sleep -Milliseconds 800
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+	Start-Sleep -Seconds 1
+	Start-Process explorer
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -782,12 +789,6 @@ if ($tweakGeneralExplorerAndOther) {
 
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
-
-	# Set Performance options preset to "Best Performance" to "Custom"
-	Write-Host "Status: Applying custom set performance options..." -ForegroundColor Yellow
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
-	Start-Sleep -Milliseconds 500
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
