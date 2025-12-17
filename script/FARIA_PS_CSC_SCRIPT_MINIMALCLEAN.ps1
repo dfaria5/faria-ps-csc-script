@@ -777,8 +777,36 @@ if ($tweakGeneralExplorerAndOther) {
 
 	Write-Host "Status: Setting cursor scheme to None (classic XP default cursors)..." -ForegroundColor Yellow
 
-	# Set cursor scheme to "None" (default XP cursors)
-	Set-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name "(Default)" -Value "" -Force
+	$cursorsPath = "HKCU:\Control Panel\Cursors"
+	if (-not (Test-Path $cursorsPath)) { New-Item -Path $cursorsPath -Force | Out-Null }
+
+	Set-ItemProperty -Path $cursorsPath -Name "(Default)" -Value "" -Force
+
+	$cursorsToClear = @(
+		"AppStarting",
+		"Arrow",
+		"Crosshair",
+		"Hand",
+		"Help",
+		"IBeam",
+		"No",
+		"NWPen",
+		"Pen",
+		"Person",
+		"Pin",
+		"SizeAll",
+		"SizeNESW",
+		"SizeNS",
+		"SizeNWSE",
+		"SizeWE",
+		"UpArrow",
+		"Wait"
+	)
+	foreach ($cursor in $cursorsToClear) {
+		Set-ItemProperty -Path $cursorsPath -Name $cursor -Value "" -Force
+	}
+
+	Set-ItemProperty -Path $cursorsPath -Name "Scheme Source" -Value 0 -Type DWord -Force
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
