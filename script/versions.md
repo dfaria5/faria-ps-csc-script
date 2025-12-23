@@ -57,7 +57,7 @@ This text file includes all the details and configurations about each version of
   - Notepad++
   - VLC Media Player
 
-### Minimal Full Clean Version (Specific changes)
+### Minimal Version (Specific changes)
 - Uninstall Microsft Store and Xbox App (Optional, will ask User - **WARNING**: After you uninstall this they cannot be installed again. This option should be used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App)
 - Other custom set Windows preferences.
   - Desktop preferences.
