@@ -823,6 +823,12 @@ if ($tweakGeneralExplorerAndOther) {
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
 
+	# Set Performance options preset to "Best Performance" to "Custom"
+	Write-Host "Status: Applying custom set performance options..." -ForegroundColor Yellow
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
+	Start-Sleep -Milliseconds 500
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
+
 	# Default "best performance" UserPreferencesMask
 	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
 	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
