@@ -24,7 +24,7 @@ This text file includes all the details and configurations about each version of
     - Show classic desktop icons.
     - Set wallpaper mode to Picture.
     - Set default Windows wallpaper.
-    - Show Windows Build/Version at the bottom right corner.
+    - Show Windows Build/Version at the bottom right corner. (Optional, will ask User)
   - File Explorer preferences.
     - Show hidden files.
     - Show file extension.
@@ -36,6 +36,7 @@ This text file includes all the details and configurations about each version of
     - Timeouts set to never.
     - Disable hard disk turning off by setting the value to 0.
   - Enables legacy component DirectPlay.
+  - Show Verbose Status (Optional, will ask User - Display more additional information when booting or shutting down and logging in or logging out Windows)
 
 
 ### Essential Version (Specific changes)
@@ -49,7 +50,7 @@ This text file includes all the details and configurations about each version of
     - Show window contents while dragging.
     - Smooth edges of screen fonts.
     - Use drop shadows for icon labels on the desktop.
-- Installs programs.
+- Installs programs. (Optional, will ask User)
   - Microsoft Distributions (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime)
   - Powershell 7
   - Apple QuickTime (for old apps using its api/code/features)
@@ -59,11 +60,10 @@ This text file includes all the details and configurations about each version of
   - VLC Media Player
 
 ### Minimal Full Clean Version (Specific changes)
+- Uninstall Microsft Store and Xbox App (Optional, will ask User - **WARNING**: After you uninstall this they cannot be installed again. This option should be used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App)
 - Other custom set Windows preferences.
   - Desktop preferences.
     - Set wallpaper mode to Solid Color.
     - Set Solid Color to Dark Gray (Color RBG value: 15, 15, 15).
-    - Show Windows Build/Version at the bottom right corner.
   - Advanced system settings, Performance Settings.
     - None selected/checked.
-  - Show Verbose Status (display more additional information when booting or shutting down and logging in or logging out Windows)
