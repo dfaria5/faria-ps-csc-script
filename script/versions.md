@@ -22,8 +22,6 @@ This text file includes all the details and configurations about each version of
 - Other custom set Windows preferences.
   - Desktop preferences.
     - Show classic desktop icons.
-    - Set wallpaper mode to Picture.
-    - Set default Windows wallpaper.
     - Show Windows Build/Version at the bottom right corner. (Optional, will ask User)
   - File Explorer preferences.
     - Show hidden files.
