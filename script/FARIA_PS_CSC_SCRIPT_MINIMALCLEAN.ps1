@@ -823,37 +823,49 @@ if ($tweakGeneralExplorerAndOther) {
 	# Taskbar start button, pinned and opened Apps, search filed bar set alignment to the left (Only on Windows 11)
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
 
-	# Set Performance options preset to "Best Performance" to "Custom"
-	Write-Host "Status: Applying custom set performance options..." -ForegroundColor Yellow
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
-	Start-Sleep -Milliseconds 500
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
+	$visualFXPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
+	if (-not (Test-Path $visualFXPath)) { New-Item -Path $visualFXPath -Force | Out-Null }
 
-	# Default "best performance" UserPreferencesMask
-	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
+	# Step 1: Baseline - Adjust for best performance (disables most legacy effects)
+	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 2
 
-	# Disable taskbar animations
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
+	# Step 2: Switch to Custom
+	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 3
 
-	# Disable/Uncheck 'Enable Peek'
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
-	
-	# Disable/Uncheck 'Show thumbnails instead of icons'
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 1
+	# Step 3: Explicitly disable the ones that often linger
+	# No minimize/maximize animations
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value "0"
 
-	# Disable/Uncheck 'Show window contents while dragging'
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "DragFullWindows" -Type String -Value "0"
+	# No taskbar animations (legacy key - harmless if ignored)
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0
 
-	# Disable/Uncheck 'Show translucent selection rectangle'
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewAlphaSelect" -Type DWord -Value 0
+	# Disable Peek
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0
 
-	# Disable/Uncheck 'Smooth edges of screen fonts'
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothing" -Type String -Value "0"
-	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothingType" -Type DWord -Value 0
+	# No thumbnails instead of icons (you had this reversed - 1 = hide thumbnails)
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1
 
-	# Disable/Uncheck 'Use drop shadows for icon labels'
-	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewShadow" -Type DWord -Value 0
+	# No window contents while dragging
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value "0"
+
+	# No translucent selection rectangle
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0
+
+	# No smooth font edges
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothing" -Type String -Value "0"
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -Type DWord -Value 0
+
+	# No icon label shadows
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0
+
+	# Critical for Win11: Disable transparency/Mica/Acrylic blur (this kills the stubborn blur on taskbar/Start/windows)
+	$themesPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+	if (-not (Test-Path $themesPath)) { New-Item -Path $themesPath -Force | Out-Null }
+	Set-ItemProperty -Path $themesPath -Name "EnableTransparency" -Type DWord -Value 0
+
+	# Optional: More aggressive modern "best performance" mask (overrides legacy one for newer effects)
+	$modernMask = [byte[]](0x90, 0x32, 0x07, 0x80, 0x10, 0x00, 0x00, 0x00)  # Common updated value for Win10/11
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Value $modernMask
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
@@ -861,10 +873,12 @@ if ($tweakGeneralExplorerAndOther) {
 
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
-	# Restart desktop
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	# Restart explorer.exe
-    Stop-Process -Name explorer -Force
+	Start-Sleep -Seconds 2
+	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+	Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+	Start-Sleep -Seconds 2
+	Start-Process explorer
 
 	# Enable DirectPlay. This is for some old games (for example: GTA San Andreas)
 	Write-Host "Status: Enabling legacy feature 'DirectPlay'..." -ForegroundColor Yellow
