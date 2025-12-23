@@ -826,46 +826,32 @@ if ($tweakGeneralExplorerAndOther) {
 	$visualFXPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
 	if (-not (Test-Path $visualFXPath)) { New-Item -Path $visualFXPath -Force | Out-Null }
 
-	# Step 1: Baseline - Adjust for best performance (disables most legacy effects)
+	# Baseline: Best performance
 	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 2
 
-	# Step 2: Switch to Custom
+	# Switch to Custom
 	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 3
 
-	# Step 3: Explicitly disable the ones that often linger
-	# No minimize/maximize animations
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value "0"
-
-	# No taskbar animations (legacy key - harmless if ignored)
+	# Explicit disables (your original intent)
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value "0"  # No min/max animations
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0
-
-	# Disable Peek
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0
-
-	# No thumbnails instead of icons (you had this reversed - 1 = hide thumbnails)
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1
-
-	# No window contents while dragging
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1  # No thumbnails
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value "0"
-
-	# No translucent selection rectangle
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0
-
-	# No smooth font edges
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothing" -Type String -Value "0"
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -Type DWord -Value 0
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0  # Icon label shadows off
 
-	# No icon label shadows
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0
-
-	# Critical for Win11: Disable transparency/Mica/Acrylic blur (this kills the stubborn blur on taskbar/Start/windows)
+	# Kill transparency/Mica/Acrylic (removes taskbar/Start blur + some modern shadows)
 	$themesPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 	if (-not (Test-Path $themesPath)) { New-Item -Path $themesPath -Force | Out-Null }
 	Set-ItemProperty -Path $themesPath -Name "EnableTransparency" -Type DWord -Value 0
 
-	# Optional: More aggressive modern "best performance" mask (overrides legacy one for newer effects)
-	$modernMask = [byte[]](0x90, 0x32, 0x07, 0x80, 0x10, 0x00, 0x00, 0x00)  # Common updated value for Win10/11
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Value $modernMask
+	# Aggressive mask that disables shadows under windows + cursor shadow (while keeping other disables)
+	# This is a tuned "best performance" mask for modern Win10/11: no window shadows, no cursor shadow
+	$noShadowMask = [byte[]](0x90, 0x12, 0x03, 0x80, 0x10, 0x00, 0x00, 0x00)
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Value $noShadowMask
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
     New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
