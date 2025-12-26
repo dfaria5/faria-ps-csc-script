@@ -46,14 +46,14 @@ if (-not $IsAdmin) {
 }
 
 # ========================
-# CONFIGURATION
+#  CONFIGURATION
 # ========================
 $removeApps						= $true
 $disableTelemetry				= $true
 $manageServices  				= $true
 $setPowerPlanUltimate     		= $true
 $tweakGeneralExplorerAndOther	= $true
-$installapps					= $false	# Disabled for now, testing other stuff.
+$installapps					= $false
 
 # Detect Windows build information
 $osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
@@ -73,22 +73,23 @@ Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " 
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
 Write-Host "                                                                  " -ForegroundColor Green -BackgroundColor Black
 
-
 if ([int]$osInfo.CurrentBuildNumber -ge 22000) {
     $osName = "Windows 11"
 } else {
     $osName = "Windows 10"
 }
-
 $displayVer = $osInfo.DisplayVersion
 if (-not $displayVer) { $displayVer = $osInfo.ReleaseId }
-
 Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osName, $osInfo.EditionID, $osInfo.DisplayVersion, $osInfo.ReleaseId, $osInfo.CurrentBuildNumber) -ForegroundColor Green -BackgroundColor Black
-Write-Host "Status: Script excuted and started. Recommended not to use your desktop while the script is running." -ForegroundColor Green
+
+# ========================
+#  START
+# ========================
+Write-Host "Status: Script excuted and started! Recommended not to use your desktop while the script is running." -ForegroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
 # ========================
-# 1. REMOVE UNWANTED/BLOAT APPS
+#  REMOVE UNWANTED/BLOAT APPS
 # ========================
 if ($removeApps) {
     Write-Host "[Status]: Uninstalling unwanted/bloat apps..." -ForegroundColor Cyan
@@ -244,7 +245,7 @@ if ($removeApps) {
 }
 
 # ========================
-# DISABLE TELEMETRY
+#  DISABLE TELEMETRY
 # ========================
 if ($disableTelemetry) {
     Write-Host "[Status]: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor Cyan
@@ -258,7 +259,7 @@ if ($disableTelemetry) {
 }
 
 # ========================
-# OPTIMIZING SERVICES
+#  OPTIMIZING SERVICES
 # ========================
 if ($manageServices) {
     Write-Host "[Status]: Optimizing services..." -ForegroundColor Cyan
@@ -567,7 +568,7 @@ if ($manageServices) {
 }
 
 # ========================
-# POWER SETTINGS
+#  POWER SETTINGS
 # ========================
 if ($setPowerPlanUltimate) {
     Write-Host "[Status]: Setting power management options..." -ForegroundColor Cyan
@@ -671,8 +672,17 @@ if ($setPowerPlanUltimate) {
 
 	Write-Host "Status: Changing power settings for network adapters..." -ForegroundColor Yellow
 
-	# Get all network adapters, including hidden or disabled
+	# Get all network adapters, including hidden or disabled.
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
+	
+	# Asks the user if they wanna use DNS servers.
+	$setDnsYes = $false
+	$setDns = Read-Host "Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS Servers? [Y/N]: "
+	if ($setDns -match '^[Yy]$') {
+		$setDnsYes = $true
+	} else { 
+		$setDnsYes = $false
+	}
 
 	foreach ($adapter in $netAdapters) {
     Write-Host "Status: Changing network power settings for $($adapter.Name)" -ForegroundColor Yellow
@@ -702,17 +712,17 @@ if ($setPowerPlanUltimate) {
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
 
-		$dnsServers = Read-Host "Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS Servers? [Y/N]: "
-		if ($dnsServers -match '^[Yy]$') {
+		if ($setDnsYes -eq $true) {
 			try {
 				Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
 			} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
-		} else { <# Nothing #> }
+		} else { <# Skips this and does nothing. #> }
+		
 	}
 }
 
 # ========================
-# FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
+#  FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
 # ========================
 if ($tweakGeneralExplorerAndOther) {
     Write-Host "[Status]: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
@@ -885,8 +895,17 @@ if ($tweakGeneralExplorerAndOther) {
 	}
 }
 
+# ?? ASK USER
+# ?? INSTALL APPS
+$installapps = Read-Host "Do you wish to install extra essential apps? (7zip, Java, VLC Media Player, Microsoft Distributions/Redistributables, Powershell 7) [Y/N]: "
+if ($installapps -match '^[Yy]$') {
+	$installapps = $true
+} else { 
+	$installapps = $false
+}
+
 # ========================
-# INSTALL ESSENTIAL APPS
+#  INSTALL ESSENTIAL APPS
 # ========================
 if ($installapps) {
     Write-Host "[Status]: Installing new apps..." -ForegroundColor Cyan
@@ -925,13 +944,10 @@ if ($installapps) {
 		"Microsoft.DotNet.AspNetCore.9",
 		"Microsoft.DirectX",
 		"Microsoft.PowerShell",
-        "nepnep.neofetch-win",
 		"Oracle.JavaRuntimeEnvironment",
-		"Apple.QuickTime",
         "7zip.7zip",
         "Notepad++.Notepad++",
         "VideoLAN.VLC",
-		"XnSoft.XnViewMP"
     )
 
     foreach ($app in $apps) {
@@ -952,7 +968,10 @@ if ($installapps) {
     }
 }
 
-#Write-Host "`nScript completed! Its recommended to restart Windows for full effect of all settings to be applied!" -ForegroundColor Green
+
+# ========================
+#  END
+# ========================
 Write-Host "`nScript completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor Green
 $restart = Read-Host "Restart your PC now? (Y/N): "
 
