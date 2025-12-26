@@ -33,8 +33,10 @@ This text file includes all the details and configurations about each version of
     - Power plan set to Ultimate Performance.
     - Timeouts set to never.
     - Disable hard disk turning off by setting the value to 0.
+  - Disable/Uncheck all Power Managment options for all Network adapters.
+  - Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS. (Optional, will ask User)
   - Enables legacy component DirectPlay.
-  - Show Verbose Status (Optional, will ask User - Display more additional information when booting or shutting down and logging in or logging out Windows)
+  - Show Verbose Status. (Optional, will ask User - Display more additional information when booting or shutting down and logging in or logging out Windows)
 
 
 ### Essential Version (Specific changes)
@@ -58,7 +60,7 @@ This text file includes all the details and configurations about each version of
   - VLC Media Player
 
 ### Minimal Version (Specific changes)
-- Uninstall Microsft Store and Xbox App (Optional, will ask User - **WARNING**: After you uninstall this they cannot be installed again. This option should be used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App)
+- Uninstall Microsft Store and Xbox App. (Optional, will ask User - **WARNING**: After you uninstall this they cannot be installed again. This option should be used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App)
 - Other custom set Windows preferences.
   - Desktop preferences.
     - Set wallpaper mode to Solid Color.
