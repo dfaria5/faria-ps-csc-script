@@ -27,7 +27,7 @@ irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/ma
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
 2. Paste and run the comamnd bellow or you can download the script.
 
-**Optimise Windows Only** (*Only disables Microsoft telementry, optimises Services, Power Plan set to Ultimate Performance and sets Performance Preset in Advanced System Settings*)
+**Optimise Windows Only** (*Only disables Microsoft telementry, optimises Services, Power Plan set to Ultimate Performance, optimise Network adapters and sets Performance Preset in Advanced System Settings*)
 ```
 irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/other/FARIA_PS_CSC_SCRIPT_ONLYOPTIMISEPC.ps1" | iex
 ```
