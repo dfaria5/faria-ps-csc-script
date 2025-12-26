@@ -34,7 +34,7 @@ This text file includes all the details and configurations about each version of
     - Timeouts set to never.
     - Disable hard disk turning off by setting the value to 0.
   - Disable/Uncheck all Power Managment options for all Network adapters.
-  - Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS. (Optional, will ask User)
+  - Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS servers. (Optional, will ask User)
   - Enables legacy component DirectPlay.
   - Show Verbose Status. (Optional, will ask User - Display more additional information when booting or shutting down and logging in or logging out Windows)
 
