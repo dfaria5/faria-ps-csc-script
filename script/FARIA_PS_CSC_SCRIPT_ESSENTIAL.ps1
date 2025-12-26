@@ -68,10 +68,10 @@ Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| 
 Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor Black
 
-Write-Host "`n<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
+Write-Host "`n                                                              " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
-Write-Host "<$                                                              $>" -ForegroundColor Green -BackgroundColor Black
+Write-Host "                                                              " -ForegroundColor Green -BackgroundColor Black
 
 
 if ([int]$osInfo.CurrentBuildNumber -ge 22000) {
@@ -750,7 +750,10 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" -Name "(default)" -Value "" -Force
 
 	# Show Windows build at the bottom right of the desktop
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
+	$winBuildDesktop = Read-Host "Show Windows build at the bottom right of the desktop? [Y/N]: "
+	if ($winBuildDesktop -match '^[Yy]$') {
+		Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -Force
+	} else { <# Nothing #> }
 
 	# Disable Spotlight
 	$cdmPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
@@ -770,20 +773,10 @@ if ($tweakGeneralExplorerAndOther) {
         } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
         }
-	}
-	else {
+	} else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
 	}
-
-	<#
-	$desktopReg = "HKCU:\Control Panel\Desktop"
-	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
-	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
-	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-	#>
 
 	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
@@ -802,27 +795,16 @@ if ($tweakGeneralExplorerAndOther) {
 	# Set the actual solid color
 	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force #>
 
+	<#
+	$desktopReg = "HKCU:\Control Panel\Desktop"
+	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
+	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
+	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
+	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
+	#>
+
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
-
-	# Disable News/Weather Widget (Windows 10)
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -Value 2 -Type DWord
-
-	# Disable News/Weather Widget (Windows 11)
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0 -Type DWord
-
-	# Extra policy enforcement for News/Weather Widget - [Disabled, this code uses forced group policy rules basically making the setting unchangeable without commands]
-	<# New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
-	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Force | Out-Null
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 0 -Type DWord
-
-	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
-	New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Force | Out-Null
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name "EnableFeeds" -Value 0 -Type DWord
-
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord
-	Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Dsh" -Name "AllowNewsAndInterests" -Value 1 -Type DWord #>
 
 	# Taskbar search display set to icon (Windows 10)
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -Type DWord
@@ -878,8 +860,11 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
 
 	# Enable Verbose Status (additional log information when shutting down/restarting Windows)
-    New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
+    $verboseS = Read-Host "Enable Verbose Status? (additional log information when shutting down/restarting Windows) [Y/N]: "
+	if ($verboseS -match '^[Yy]$') {
+		New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Force | Out-Null
+		Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "verbosestatus" -Type DWord -Value 1 -Force
+	} else { <# Nothing #> }
 
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
@@ -973,6 +958,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
-
 }
-
