@@ -29,7 +29,7 @@ irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/ma
 
 **Optimise Windows Only** (*Only disables Microsoft telementry, optimises Services, Power Plan set to Ultimate Performance and sets Performance Preset in Advanced System Settings*)
 ```
-irm "" | iex
+irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/other/FARIA_PS_CSC_SCRIPT_ONLYOPTIMISEPC.ps1" | iex
 ```
 **Optimise Windows Only - 2** (*Same as the first one but doesnt disable Microsoft telementry*)
 ```
