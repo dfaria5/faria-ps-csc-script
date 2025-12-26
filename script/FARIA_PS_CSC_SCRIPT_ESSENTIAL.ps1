@@ -68,10 +68,10 @@ Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| 
 Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor Black
 
-Write-Host "`n                                                              " -ForegroundColor Green -BackgroundColor Black
+Write-Host "`n                                                                  " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
-Write-Host "                                                              " -ForegroundColor Green -BackgroundColor Black
+Write-Host "                                                                  " -ForegroundColor Green -BackgroundColor Black
 
 
 if ([int]$osInfo.CurrentBuildNumber -ge 22000) {
@@ -702,9 +702,12 @@ if ($setPowerPlanUltimate) {
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
 
-        try {
-			Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-		} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
+		$dnsServers = Read-Host "Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS Servers? [Y/N]: "
+		if ($dnsServers -match '^[Yy]$') {
+			try {
+				Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
+			} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
+		} else { <# Nothing #> }
 	}
 }
 

@@ -1,8 +1,8 @@
 <#
     Faria Powershell Custom Setup Config Script Win 10/11
-	Essential Version
+	Minimal Version
     Created by FARIA (github.com/dfaria5)
-	
+
 		    @@@@@@@@@@@@@@@@@@@@@@@@@@
 		   @@@@@@@@@@@@@@@@@@@@@@@@@@
 	      @@@@@  @@@@@@@@@@@@@@@@@@@
@@ -13,7 +13,7 @@
 	 @@@@@@@@@@@@@@@@@@@@@@@@@@
 	@@@@@@@@@@@@@@@@@@@@@@@@@@
 	 __  __ _       _                 _ 
-	|  \/  (_)     (_)               | |             
+	|  \/  (_)     (_)               | |
 	| \  / |_ _ __  _ _ __ ___   __ _| |
 	| |\/| | | '_ \| | '_ ` _ \ / _` | |
 	| |  | | | | | | | | | | | | (_| | |
@@ -67,7 +67,7 @@ Write-Host "  @@@@@@@  @@@@@       @@@@@        | |\/| | | '_ \| | '_ ` _ \ / _`
 Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |  | | | | | | | | | | | | (_| | |     " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |_|  |_|_|_| |_|_|_| |_| |_|\__,_|_|     " -ForegroundColor DarkBlue -BackgroundColor Black
 
-Write-Host "`n                                                                 " -ForegroundColor Green -BackgroundColor Black
+Write-Host "`n                                                                  " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
 Write-Host "                                                                  " -ForegroundColor Green -BackgroundColor Black
@@ -701,9 +701,12 @@ if ($setPowerPlanUltimate) {
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
 
-        try {
-			Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-		} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
+        $dnsServers = Read-Host "Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS Servers? [Y/N]: "
+		if ($dnsServers -match '^[Yy]$') {
+			try {
+				Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
+			} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
+		} else { <# Nothing #> }
 	}
 }
 
