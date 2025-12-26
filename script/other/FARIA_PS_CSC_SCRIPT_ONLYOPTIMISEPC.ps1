@@ -56,7 +56,7 @@ Write-Host "  Powershell Script # Optimise Windows Only     " -ForegroundColor D
 Write-Host "                                                " -ForegroundColor DarkBlue -BackgroundColor Black
 
 
-Write-Host "`n                                                                 " -ForegroundColor Green -BackgroundColor Black
+Write-Host "`n                                                                  " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     FARIA                                                        " -ForegroundColor Green -BackgroundColor Black
 Write-Host "                                                                  " -ForegroundColor Green -BackgroundColor Black
@@ -533,10 +533,6 @@ if ($setPowerPlanUltimate) {
 			}
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
-
-        try {
-			Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-		} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
 	}
 }
 
@@ -544,37 +540,48 @@ if ($setPowerPlanUltimate) {
 # Setting Performance Preset on Settings 'Advanced System Properties/Performance' tab...
 # ========================
 if ($tweakPerformancePresetSettings) {
-    Write-Host "[Status]: Setting Performance Preset on 'Advanced System Seettings/Performance' tab..." -ForegroundColor Cyan
+    Write-Host "[Status]: Setting Performance Preset on 'Advanced System Settings/Performance' tab..." -ForegroundColor Cyan
+	Write-Host "Status: Setting Performance Preset on 'Advanced System Settings/Performance' tab..." -ForegroundColor Yellow
 
-	$visualFXPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects"
-	if (-not (Test-Path $visualFXPath)) { New-Item -Path $visualFXPath -Force | Out-Null }
+	# Set Performance options preset to "Best Performance" to "Custom"
+	Write-Host "Status: Applying custom set performance options..." -ForegroundColor Yellow
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
+	Start-Sleep -Milliseconds 500
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
 
-	# Baseline: Best performance
-	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 2
+	# Default "best performance" UserPreferencesMask
+	$PerfMask = [byte[]](144, 18, 3, 128, 16, 0, 0, 0)
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name UserPreferencesMask -Value $PerfMask
 
-	# Switch to Custom
-	Set-ItemProperty -Path $visualFXPath -Name "VisualFXSetting" -Type DWord -Value 3
+	# Enable/Check 'Animate controls and elements inside windows'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "DefaultApplied" -Type DWord -Value 1
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "DefaultValue" -Type DWord -Value 1
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects\ControlAnimations' -Name "Value" -Type DWord -Value 1
 
-	# Disable/Uncheck everything from Performance/Advanced System Options
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value "0"  # No min/max animations
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1  # No thumbnails
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value "0"
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothing" -Type String -Value "0"
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "FontSmoothingType" -Type DWord -Value 0
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0  # Icon label shadows off
+	# Disable/Uncheck 'Animate windows when minimising and maximising'
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop\WindowMetrics' -Name "MinAnimate" -Type String -Value "0"
 
-	# Kill transparency/Mica/Acrylic (removes taskbar/Start blur + some modern shadows)
-	$themesPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
-	if (-not (Test-Path $themesPath)) { New-Item -Path $themesPath -Force | Out-Null }
-	Set-ItemProperty -Path $themesPath -Name "EnableTransparency" -Type DWord -Value 0
+	# Disable/Uncheck 'Enable Peek'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\DWM' -Name "EnableAeroPeek" -Type DWord -Value 0
 
-	# Aggressive mask that disables shadows under windows + cursor shadow (while keeping other disables)
-	# This is a tuned "best performance" mask for modern Win10/11: no window shadows, no cursor shadow
-	$noShadowMask = [byte[]](0x90, 0x12, 0x03, 0x80, 0x10, 0x00, 0x00, 0x00)
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Value $noShadowMask
+	# Enable/Check 'Show thumbnails instead of icons'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "IconsOnly" -Type DWord -Value 0
+
+	# Enable/Check 'Show translucent selection rectangle'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewAlphaSelect" -Type DWord -Value 1
+
+	# Enable/Check 'Show window contents while dragging'
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "DragFullWindows" -Type String -Value "1"
+
+	# Enable/Check 'Smooth edges of screen fonts'
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothing" -Type String -Value "2"
+	Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name "FontSmoothingType" -Type DWord -Value 2
+
+	# Enable/Check 'Use drop shadows for icon labels'
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "ListviewShadow" -Type DWord -Value 1
+
+	# Disable taskbar animations
+	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name "TaskbarAnimations" -Type DWord -Value 0
 
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
