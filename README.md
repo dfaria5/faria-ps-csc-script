@@ -37,5 +37,5 @@ irm "" | iex
 ```
 **Optimise Services Only** (*As it says only optmises Services*)
 ```
-irm "" | iex
+irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/other/FARIA_PS_CSC_SCRIPT_ONLYOPTIMISESERVICES.ps1" | iex
 ```
