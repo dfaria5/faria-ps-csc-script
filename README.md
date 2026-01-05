@@ -18,7 +18,7 @@ Update Windows before running this script.
 ```
 irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/FARIA_PS_CSC_SCRIPT_ESSENTIAL.ps1" | iex
 ```
-**Minimal** (*Recommended for low end PCs, Servers and others that are for Services*)
+**Minimal** (*Recommended for low end PCs, Services PCs, Servers*)
 ```
 irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/FARIA_PS_CSC_SCRIPT_MINIMAL.ps1" | iex
 ```
