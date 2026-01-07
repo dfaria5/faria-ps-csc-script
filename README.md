@@ -33,7 +33,7 @@ irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/ma
 ```
 **Optimise Windows Only - 2** (*Same as the first one but doesnt disable Microsoft telementry*)
 ```
-irm "" | iex
+irm "https://raw.githubusercontent.com/dfaria5/faria-ps-csc-script/refs/heads/main/script/other/FARIA_PS_CSC_SCRIPT_ONLYOPTIMISEPC_NOMST.ps1" | iex
 ```
 **Optimise Services Only** (*As it says only optmises Services*)
 ```
