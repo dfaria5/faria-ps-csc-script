@@ -947,7 +947,7 @@ if ($installapps) {
 		"Oracle.JavaRuntimeEnvironment",
         "7zip.7zip",
         "Notepad++.Notepad++",
-        "VideoLAN.VLC",
+        "VideoLAN.VLC"
     )
 
     foreach ($app in $apps) {
@@ -980,4 +980,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
+
 }
