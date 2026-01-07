@@ -58,15 +58,17 @@ $installapps					= $false
 # Detect Windows build information
 $osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
 
-Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _ " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "  @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|" -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "                                                                                       " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "             @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "            @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:                    " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "           @@@@@  @@@@@@@@@@@@@@@@@@@                                                  " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "          @@@@@@@  @@@@@@@@@@@@@@@@@      ______                    _   _       _      " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "         @@@@@@@@@  @@@@@@@@@@@@@@@      |  ____|                  | | (_)     | |     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "        @@@@@@@@  @@@@@@@@@@@@@@@@       | |__   ___ ___  ___ _ __ | |_ _  __ _| |     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "       @@@@@@@  @@@@@       @@@@@        |  __| / __/ __|/ _ \ '_ \| __| |/ _' | |     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "      @@@@@@@@@@@@@@@@@@@@@@@@@@         | |____\__ \__ \  __/ | | | |_| | (_| | |     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "     @@@@@@@@@@@@@@@@@@@@@@@@@@          |______|___/___/\___|_| |_|\__|_|\__,_|_|     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "                                                                                       " -ForegroundColor DarkBlue -BackgroundColor Black
 
 Write-Host "`n                                                                  " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
@@ -781,24 +783,25 @@ if ($tweakGeneralExplorerAndOther) {
 	# Set wallpaper path depending of which Windows version
 	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		# Windows 11 default
-		if ($isLightMode -eq 1) {
+		<# if ($isLightMode -eq 1) {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
         } else {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-        }
+        } #>
+		# Currently changing wallpaper on Windows 11 is too buggy and will not work 100% all the time.
 	} else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
+		
+		$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
+		if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
+
+		# DEFAULT WINDOWS WALLPAPER
+		# Wallpaper Mode set to Image
+		Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
+		# Set wallpaper
+		Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 	}
-
-	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
-	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
-
-	# DEFAULT WINDOWS WALLPAPER
-	# Wallpaper Mode set to Image
-	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
-	# Set wallpaper
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 
 	<# # SOLID COLOR
 	# Wallpaper Mode set to Solid Color
@@ -980,5 +983,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
-
 }

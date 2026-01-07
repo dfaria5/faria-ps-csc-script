@@ -57,15 +57,17 @@ $tweakGeneralExplorerAndOther	= $true
 # Detect Windows build information
 $osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
 
-Write-Host "        @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11" -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "       @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:               " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "      @@@@@  @@@@@@@@@@@@@@@@@@@                                             " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "     @@@@@@@  @@@@@@@@@@@@@@@@@      __  __ _       _                 _      " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "    @@@@@@@@@  @@@@@@@@@@@@@@@      |  \/  (_)     (_)               | |     " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "   @@@@@@@@  @@@@@@@@@@@@@@@@       | \  / |_ _ __  _ _ __ ___   __ _| |     " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "  @@@@@@@  @@@@@       @@@@@        | |\/| | | '_ \| | '_ ` _ \ / _` | |     " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@@@         | |  | | | | | | | | | | | | (_| | |     " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "@@@@@@@@@@@@@@@@@@@@@@@@@@          |_|  |_|_|_| |_|_|_| |_| |_|\__,_|_|     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "                                                                                       " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "             @@@@@@@@@@@@@@@@@@@@@@@@@@  Faria Custom Setup Config Script Win10/11     " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "            @@@@@@@@@@@@@@@@@@@@@@@@@@   POWERSHELL SCRIPT VERSION:                    " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "           @@@@@  @@@@@@@@@@@@@@@@@@@                                                  " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "          @@@@@@@  @@@@@@@@@@@@@@@@@      __  __ _       _                 _           " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "         @@@@@@@@@  @@@@@@@@@@@@@@@      |  \/  (_)     (_)               | |          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "        @@@@@@@@  @@@@@@@@@@@@@@@@       | \  / |_ _ __  _ _ __ ___   __ _| |          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "       @@@@@@@  @@@@@       @@@@@        | |\/| | | '_ \| | '_ ` _ \ / _` | |          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "      @@@@@@@@@@@@@@@@@@@@@@@@@@         | |  | | | | | | | | | | | | (_| | |          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "     @@@@@@@@@@@@@@@@@@@@@@@@@@          |_|  |_|_|_| |_|_|_| |_| |_|\__,_|_|          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "                                                                                       " -ForegroundColor DarkBlue -BackgroundColor Black
 
 Write-Host "`n                                                                  " -ForegroundColor Green -BackgroundColor Black
 Write-Host "     https://github.com/dfaria5/faria-ps-csc-script               " -ForegroundColor Green -BackgroundColor Black
