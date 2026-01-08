@@ -2,7 +2,7 @@
     Faria Powershell Custom Setup Config Script Win 10/11
 	Essential Version
     Created by FARIA (github.com/dfaria5)
-
+	
 		    @@@@@@@@@@@@@@@@@@@@@@@@@@
 		   @@@@@@@@@@@@@@@@@@@@@@@@@@
 	      @@@@@  @@@@@@@@@@@@@@@@@@@
@@ -983,5 +983,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
-
 }
