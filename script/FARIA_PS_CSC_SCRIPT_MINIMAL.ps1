@@ -64,7 +64,7 @@ Write-Host "           @@@@@  @@@@@@@@@@@@@@@@@@@                               
 Write-Host "          @@@@@@@  @@@@@@@@@@@@@@@@@      __  __ _       _                 _           " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "         @@@@@@@@@  @@@@@@@@@@@@@@@      |  \/  (_)     (_)               | |          " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "        @@@@@@@@  @@@@@@@@@@@@@@@@       | \  / |_ _ __  _ _ __ ___   __ _| |          " -ForegroundColor DarkBlue -BackgroundColor Black
-Write-Host "       @@@@@@@  @@@@@       @@@@@        | |\/| | | '_ \| | '_ ` _ \ / _` | |          " -ForegroundColor DarkBlue -BackgroundColor Black
+Write-Host "       @@@@@@@  @@@@@       @@@@@        | |\/| | | '_ \| | '_ ` _ \ / _`   | |          " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "      @@@@@@@@@@@@@@@@@@@@@@@@@@         | |  | | | | | | | | | | | | (_| | |          " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "     @@@@@@@@@@@@@@@@@@@@@@@@@@          |_|  |_|_|_| |_|_|_| |_| |_|\__,_|_|          " -ForegroundColor DarkBlue -BackgroundColor Black
 Write-Host "                                                                                       " -ForegroundColor DarkBlue -BackgroundColor Black
@@ -906,4 +906,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
+
 }
