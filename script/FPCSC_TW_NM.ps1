@@ -70,6 +70,7 @@ foreach ($path in $cachePaths) {
     }
 }
 
+$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 # Determine dark mode (1 = light mode, 0 = dark mode)
 $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
@@ -118,3 +119,4 @@ if ($restart -match '^[Yy]$') {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
 
 }
+
