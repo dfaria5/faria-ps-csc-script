@@ -96,7 +96,11 @@ if ($osInfo.CurrentBuildNumber -ge 22000) {
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 }
 
-# Force explorer restart to apply changes immediately
+# Restart explorer.exe and Desktop to apply changes
+Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
+RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+Start-Sleep -Seconds 2
+RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 2
 Start-Process explorer
@@ -112,4 +116,5 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
+
 }
