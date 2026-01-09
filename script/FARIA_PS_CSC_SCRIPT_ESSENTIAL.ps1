@@ -776,32 +776,48 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight off
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force  # Lock bleed-over off
 	Set-ItemProperty -Path $cdmPath -Name "RotatingLockScreenEnabled"     -Type DWord -Value 0 -Force
+	
+	$spotlightSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\DesktopSpotlight\Settings"
+	if (-not (Test-Path $spotlightSettingsPath)) { New-Item -Path $spotlightSettingsPath -Force | Out-Null }
+	Set-ItemProperty -Path $spotlightSettingsPath -Name "EnabledState" -Type DWord -Value 0 -Force
+	
+	# Clear Spotlight cache (prevents old images/state from reloading)
+	$cachePaths = @(
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets",
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\RoamingState",
+		"$env:LocalAppData\Packages\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\LocalCache\Microsoft\IrisService"
+	)
+	foreach ($path in $cachePaths) {
+		if (Test-Path $path) {
+			Remove-Item "$path\*" -Recurse -Force -ErrorAction SilentlyContinue
+		}
+	}
 
+	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 	# Determine dark mode (1 = light mode, 0 = dark mode)
     $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
 	# Set wallpaper path depending of which Windows version
 	if ($osInfo.CurrentBuildNumber -ge 22000) {
 		# Windows 11 default
-		<# if ($isLightMode -eq 1) {
-            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
-        } else {
+		if ($isLightMode -eq 1) {
             $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img0.jpg"
-        } #>
-		# Currently changing wallpaper on Windows 11 is too buggy and will not work 100% all the time.
+        } else {
+            $wallpaperPath = "C:\Windows\Web\Wallpaper\Windows\img19.jpg"
+        }
 	} else {
 		# Windows 10 default
 		$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-		
-		$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
-		if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
-
-		# DEFAULT WINDOWS WALLPAPER
-		# Wallpaper Mode set to Image
-		Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
-		# Set wallpaper
-		Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 	}
+	
+	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
+	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
+
+	# DEFAULT WINDOWS WALLPAPER
+	# Wallpaper Mode set to Image
+	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
+	# Set wallpaper
+	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 
 	<# # SOLID COLOR
 	# Wallpaper Mode set to Solid Color
@@ -813,7 +829,6 @@ if ($tweakGeneralExplorerAndOther) {
 
 	<#
 	$desktopReg = "HKCU:\Control Panel\Desktop"
-	$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
 	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
