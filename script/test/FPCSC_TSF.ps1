@@ -121,43 +121,40 @@ if ($testWallpaperChange) {
 }
 
 if ($testRemovePinnedShortcutsStart) {
-	# Super aggressive LinkedIn removal (installed + provisioned + all variants)
-	Write-Host "Status: Removing LinkedIn app, provisioned package, and any stubs..." -ForegroundColor Yellow
+	# Remove Sponsored/Recommended Stubs like LinkedIn from Start Menu (no install needed)
+	Write-Host "Status: Nuking Start menu cache to remove LinkedIn stub/shortcut..." -ForegroundColor Yellow
 
-	# Installed packages (all users)
-	Get-AppxPackage -AllUsers "*LinkedIn*" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-
-	# Provisioned (prevents re-install for new profiles/updates)
-	Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*LinkedIn*" -or $_.PackageName -like "*7EE7776C.LinkedInforWindows*" } |
-	Remove-AppxProvisionedPackage -Online -AllUsers -ErrorAction SilentlyContinue
-	
-	# Clear Start menu pinned/recommended cache (removes LinkedIn stub without installing)
-	Write-Host "Status: Clearing Start menu layout cache to remove LinkedIn stub..." -ForegroundColor Yellow
-
-	# Stop Start menu host
+	# 1. Stop Start menu host process (safe, it restarts automatically)
 	Stop-Process -Name "StartMenuExperienceHost" -Force -ErrorAction SilentlyContinue
 
-	# Nuke local state (pinned items, recommendations, stubs)
-	$startHostPath = "$env:LocalAppData\Packages\Microsoft.Windows.StartMenuExperienceHost_*\LocalState"
-	if (Test-Path $startHostPath) {
-		Remove-Item "$startHostPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+	# 2. Clear the Start menu local state/cache (this deletes pinned/recommended data, including stubs)
+	$startHostPaths = @(
+		"$env:LocalAppData\Packages\Microsoft.Windows.StartMenuExperienceHost_*\LocalState\*"
+	)
+	foreach ($path in $startHostPaths) {
+		if (Test-Path $path) {
+			Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
+			Write-Host "Cleared Start menu cache at $path" -ForegroundColor Yellow
+		}
 	}
 
-	# Also clean common shortcut locations (just in case)
+	# 3. Also clean any lingering shortcut files (just in case)
 	Remove-Item "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\LinkedIn*" -Recurse -Force -ErrorAction SilentlyContinue
 	Remove-Item "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\LinkedIn*" -Recurse -Force -ErrorAction SilentlyContinue
-	
-	# Disable recommended/sponsored apps in Start (prevents LinkedIn stubs from coming back)
+
+	# 4. Disable sponsored/recommended content in Start (prevents re-pinning of stubs like LinkedIn)
+	# This uses policy keys (no red text on Home/Pro, but very effective)
 	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Force | Out-Null
 	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableWindowsConsumerFeatures" -Type DWord -Value 1 -Force
 
-	# Extra: Turn off content delivery for recommendations
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338388Enabled" -Value 0 -Type DWord -Force  # Already in your script, but confirm
+	# Extra: Turn off content suggestions/recommendations
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338388Enabled" -Value 0 -Type DWord -Force
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-310093Enabled" -Value 0 -Type DWord -Force
-	
-	# Restart explorer to rebuild Start menu
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338389Enabled" -Value 0 -Type DWord -Force  # Extra for sponsored apps
+
+	# 5. Restart explorer to rebuild Start menu fresh
 	Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 2
+	Start-Sleep -Seconds 3
 	Start-Process explorer
 }
 
