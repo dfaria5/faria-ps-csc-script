@@ -42,6 +42,8 @@ Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osN
 # ========================
 #  START
 # ========================
+$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+
 # Old keys (keep them - they still help with lock screen and suggestions)
 $cdmPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
 if (-not (Test-Path $cdmPath)) { New-Item -Path $cdmPath -Force | Out-Null }
@@ -70,7 +72,6 @@ foreach ($path in $cachePaths) {
     }
 }
 
-$themeReg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 # Determine dark mode (1 = light mode, 0 = dark mode)
 $isLightMode = (Get-ItemProperty -Path $themeReg -Name "AppsUseLightTheme" -ErrorAction SilentlyContinue).AppsUseLightTheme
 
@@ -86,16 +87,16 @@ if ($osInfo.CurrentBuildNumber -ge 22000) {
 } else {
 	# Windows 10 default
 	$wallpaperPath = "C:\Windows\Web\4K\Wallpaper\Windows\img0_3840x2160.jpg"
-	
-	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
-	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
-
-	# DEFAULT WINDOWS WALLPAPER
-	# Wallpaper Mode set to Image
-	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
-	# Set wallpaper
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 }
+
+$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
+if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
+
+# DEFAULT WINDOWS WALLPAPER
+# Wallpaper Mode set to Image
+Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 0 -Force
+# Set wallpaper
+Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 
 # Restart explorer.exe and Desktop to apply changes
 Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
@@ -117,6 +118,4 @@ if ($restart -match '^[Yy]$') {
     Restart-Computer -Force
 } else {
     Write-Host "Understood. Remember to restart your PC later!" -ForegroundColor Green
-
 }
-
