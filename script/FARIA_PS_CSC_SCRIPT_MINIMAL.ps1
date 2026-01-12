@@ -774,6 +774,22 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338388Enabled" -Type DWord -Value 0 -Force  # Desktop Spotlight off
 	Set-ItemProperty -Path $cdmPath -Name "SubscribedContent-338387Enabled" -Type DWord -Value 0 -Force  # Lock bleed-over off
 	Set-ItemProperty -Path $cdmPath -Name "RotatingLockScreenEnabled"     -Type DWord -Value 0 -Force
+	
+	$spotlightSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\DesktopSpotlight\Settings"
+	if (-not (Test-Path $spotlightSettingsPath)) { New-Item -Path $spotlightSettingsPath -Force | Out-Null }
+	Set-ItemProperty -Path $spotlightSettingsPath -Name "EnabledState" -Type DWord -Value 0 -Force
+	
+	# Clear Spotlight cache (prevents old images/state from reloading)
+	$cachePaths = @(
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets",
+		"$env:LocalAppData\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\RoamingState",
+		"$env:LocalAppData\Packages\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\LocalCache\Microsoft\IrisService"
+	)
+	foreach ($path in $cachePaths) {
+		if (Test-Path $path) {
+			Remove-Item "$path\*" -Recurse -Force -ErrorAction SilentlyContinue
+		}
+	}
 
 	$wallpaperModePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 	if (-not (Test-Path $wallpaperModePath)) { New-Item -Path $wallpaperModePath -Force | Out-Null }
@@ -783,14 +799,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Clear any wallpaper path
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
 	# Set the actual solid color
-	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force
-	
-	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	Start-Sleep -Milliseconds 800
-	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 1
-	Start-Process explorer
+	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "25 25 25" -Force
 
 	Write-Host "Status: Setting cursor scheme to None (classic XP default cursors)..." -ForegroundColor Yellow
 
@@ -879,12 +888,10 @@ if ($tweakGeneralExplorerAndOther) {
 
     # Restart explorer.exe and Desktop to apply changes
 	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
+	# Restart desktop
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	Start-Sleep -Seconds 2
-	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-	Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-	Start-Sleep -Seconds 2
-	Start-Process explorer
+	# Restart explorer.exe
+    Stop-Process -Name explorer -Force
 
 	# Enable DirectPlay. This is for some old games (for example: GTA San Andreas)
 	Write-Host "Status: Enabling legacy feature 'DirectPlay'..." -ForegroundColor Yellow
