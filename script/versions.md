@@ -2,7 +2,7 @@
 This text file includes all the details and configurations about each version of the script.
 
 ### All Versions
-- Uninstall bloat windows apps. (Note: does not uninstall Microsoft Store and Xbox App.)
+- Uninstall bloat windows apps. (Note: does not uninstall Microsoft Store and Xbox App)
   - Media Player.
   - Copilot.
   - Bing.
@@ -51,7 +51,7 @@ This text file includes all the details and configurations about each version of
     - Smooth edges of screen fonts.
     - Use drop shadows for icon labels on the desktop.
 - Installs extra programs. (Optional, will ask User.)
-  - Microsoft Distributions/Redistributables (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime - Most all apps require these.)
+  - Microsoft Distributions/Redistributables (Visual C++, .NET Core, .NET Runtime, Windows Desktop Runtime - Nowadays most apps will require you to install one of these so this will just install all the necessaries.)
   - Powershell 7
   - 7zip
   - Java
@@ -59,7 +59,7 @@ This text file includes all the details and configurations about each version of
   - VLC Media Player
 
 ### Minimal Version (Specific changes)
-- Uninstall Microsft Store and Xbox App. (Optional, will ask User - **WARNING**: After you uninstall this they may not be installable again. This option should be only used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App.)
+- Hide/Disable Microsft Store and Uninstall Xbox App. (Optional, will ask User - **BE ADVISED**: This option should be only used for servers and other such as pc services, or you really dont plan to use MS Store and Xbox App. MS Store is not uninstalled because mostly Windows now is around MS Store to install updates and such. Xbox App is uninstallable but remember uninstalling Xbox App means that you will uninstall its services that is used for games such as Halo MCC, Gears of War, Forza and other published by Microsoft of course.)
 - Other custom set Windows preferences.
   - Desktop preferences.
     - Set wallpaper mode to Solid Color.
