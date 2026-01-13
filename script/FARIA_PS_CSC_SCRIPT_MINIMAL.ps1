@@ -53,6 +53,7 @@ $disableTelemetry				= $true
 $manageServices  				= $true
 $setPowerPlanUltimate     		= $true
 $tweakGeneralExplorerAndOther	= $true
+$removeMSStoreXboxApp			= $false
 
 # Detect Windows build information
 $osInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
@@ -900,6 +901,70 @@ if ($tweakGeneralExplorerAndOther) {
 	} catch {
 		Write-Warning "Failed to enable DirectPlay: $_"
 	}
+}
+
+# ========================
+#  HIDE/DISABLE MS STORE & XBOX APP REMOVAL
+# ========================
+Write-Host "[Status]: Hiding/Disabling Microsoft Store and Uninstalling Xbox App..." -ForegroundColor Cyan
+Write-Host "BE ADVISED `nIf you do this there might be a chance that these apps will not comeback. `nFor MS Store you can run 'wsreset.exe'. `nFor Xbox might not comback at all." -ForegroundColor Orange
+$askRemovalMSStoreXboxApp = Read-Host "So do you wish to Hide/Disable Microsoft Store and Uninstall Xbox App [Y/N]:"
+if ($askRemovalMSStoreXboxApp -match '^[Yy]$') {
+		$removeMSStoreXboxApp = $true
+	} else {
+		$removeMSStoreXboxApp = $false
+	}
+
+if ($removeMSStoreXboxApp) {
+	# Hide/Disable Microsoft Store access.
+	Write-Host "Status: Hiding/Disabling Microsoft Store..." -ForegroundColor Yellow
+
+	# Use the supported policy key (no "managed by organization" banner on Home/Pro)
+	New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" -Force | Out-Null
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" -Name "RemoveWindowsStore" -Type DWord -Value 1 -Force
+
+	# Disable auto-downloads/updates from Store (prevents background re-activation)
+	Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" -Name "AutoDownload" -Type DWord -Value 2 -Force
+
+	# Remove Store from Start menu search/results.
+	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "StartMenuRecommendedApps" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue
+
+	# Initial package removal (harmless if it returns, policy will block access)
+	Get-AppxPackage -AllUsers "Microsoft.WindowsStore" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+	Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.WindowsStore" } | 
+		Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
+
+	Write-Host "Status: Microsoft Store hidden/disabled." -ForegroundColor Yellow
+	
+	# Remove Xbox App & related components.
+	Write-Host "Status: Uninstalling Xbox App..." -ForegroundColor Yellow
+	$xboxPackages = @(
+		"Microsoft.GamingApp",
+		"Microsoft.XboxGamingOverlay",
+		"Microsoft.Xbox.TCUI",
+		"Microsoft.XboxApp",
+		"Microsoft.XboxIdentityProvider",
+		"Microsoft.XboxSpeechToTextOverlay",
+		"Microsoft.XboxGameOverlay"
+	)
+	foreach ($pkg in $xboxPackages) {
+		Get-AppxPackage -AllUsers "*$pkg*" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+		Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*$pkg*" -or $_.PackageName -like "*$pkg*" } | 
+			Remove-AppxProvisionedPackage -Online -AllUsers -ErrorAction SilentlyContinue
+	}
+
+	# Disable Xbox services (prevents background re-activation)
+	$xboxServices = @("XblAuthManager", "XblGameSave", "XboxNetApiSvc", "XboxGipSvc")
+	foreach ($svc in $xboxServices) {
+		Set-Service -Name $svc -StartupType Disabled -ErrorAction SilentlyContinue
+		Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+	}
+
+	# Disable Xbox scheduled tasks.
+	Get-ScheduledTask | Where-Object { $_.TaskPath -like "*Xbox*" -or $_.TaskName -like "*Xbl*" } | 
+		Disable-ScheduledTask -ErrorAction SilentlyContinue
+
+	Write-Host "Status: Xbox App uninstalled." -ForegroundColor Yellow
 }
 
 # ========================
