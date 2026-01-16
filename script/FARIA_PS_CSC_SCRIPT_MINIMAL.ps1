@@ -907,13 +907,13 @@ if ($tweakGeneralExplorerAndOther) {
 #  HIDE/DISABLE MS STORE & XBOX APP REMOVAL
 # ========================
 Write-Host "[Status]: Hiding/Disabling Microsoft Store and Uninstalling Xbox App..." -ForegroundColor Cyan
-Write-Host "BE ADVISED `nIf you do this there might be a chance that these apps will not comeback. `nFor MS Store you can run 'wsreset.exe'. `nFor Xbox might not comback at all." -ForegroundColor Orange
+Write-Host "BE ADVISED `nIf you do this there might be a chance that these apps will not comeback. `nFor MS Store you can run 'wsreset.exe'. `nFor Xbox App might not comback at all and for games that use Xbox Services are critical and can be broken. (games e.g. Halo MCC, Gears of War, Forza, Flight Simulator, others published by Microsoft of course, etc)" -ForegroundColor Yellow
 $askRemovalMSStoreXboxApp = Read-Host "So do you wish to Hide/Disable Microsoft Store and Uninstall Xbox App [Y/N]:"
 if ($askRemovalMSStoreXboxApp -match '^[Yy]$') {
 		$removeMSStoreXboxApp = $true
 	} else {
 		$removeMSStoreXboxApp = $false
-	}
+	}	
 
 if ($removeMSStoreXboxApp) {
 	# Hide/Disable Microsoft Store access.

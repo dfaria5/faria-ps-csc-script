@@ -268,6 +268,8 @@ if ($manageServices) {
 
 	# Because of the issue before where Start Menu on Windows 11 would take up to a minute or more to start
 	$autoServices = @(
+		"Spooler",
+		"WlanSvc",
 		"EventLog",
 		"AudioSrv",
 		"AudioEndpointBuilder",
@@ -290,7 +292,6 @@ if ($manageServices) {
 	)
 
     $manualServices = @(
-		"Spooler",
 		"uhssvc",
 		"SysMain",
 		"TrkWks",
@@ -437,7 +438,6 @@ if ($manageServices) {
 		"WiaRpc",
 		"WinHttpAutoProxySvc",
 		"WinRM",
-		"WlanSvc",
 		"WpcMonSvc",
 		"XblAuthManager",
         "XblGameSave",
