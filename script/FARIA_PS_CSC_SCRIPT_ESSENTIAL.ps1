@@ -834,6 +834,50 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
 	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
 	#>
+	
+	
+	if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
+		Write-Host "Status: Start Menu..." -ForegroundColor Yellow
+		try {
+			# Stop Start menu processes
+			Stop-Process -Name "StartMenuExperienceHost" -Force -ErrorAction SilentlyContinue
+			Stop-Process -Name "ShellExperienceHost" -Force -ErrorAction SilentlyContinue
+
+			# Clear Start menu layout database (main location for pinned tiles)
+			$startLayoutPath = "$env:LocalAppData\TileDataLayer\Database"
+			if (Test-Path $startLayoutPath) {
+				Remove-Item -Path "$startLayoutPath\vedatamodel.edb" -Force -ErrorAction SilentlyContinue
+				Remove-Item -Path "$startLayoutPath\vedatamodel*.edb" -Force -ErrorAction SilentlyContinue
+				Write-Host "Cleared Start menu layout database" -ForegroundColor Yellow
+			}
+
+			# Clear CloudStore cache (syncs pinned items across devices)
+			$cloudStorePath = "$env:LocalAppData\Microsoft\Windows\CloudStore"
+			if (Test-Path $cloudStorePath) {
+				Remove-Item -Path "$cloudStorePath\*" -Recurse -Force -ErrorAction SilentlyContinue
+				Write-Host "Cleared CloudStore cache" -ForegroundColor Yellow
+			}
+
+			# Delete cached Start menu layout files
+			$cachedLayoutPath = "$env:LocalAppData\Microsoft\Windows\Shell"
+			Remove-Item -Path "$cachedLayoutPath\LayoutModification.xml" -Force -ErrorAction SilentlyContinue
+			Remove-Item -Path "$cachedLayoutPath\CloudStoreCache*" -Recurse -Force -ErrorAction SilentlyContinue
+
+			# Restart explorer & desktop to rebuild Start menu
+			RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+			Stop-Process -Name explorer -Force
+
+			Write-Host "Success: All pinned items removed from Start Menu." -ForegroundColor Green
+			Write-Host "Open Start menu to verify — it should be completely empty." -ForegroundColor Cyan
+		}
+		catch {
+			Write-Warning "Error while clearing Start menu pins: $_"
+			Write-Host "You can try manually: Settings → Personalization → Start → 'Choose which folders appear on Start' → turn everything off, then restart explorer." -ForegroundColor DarkYellow
+		}
+	}
+	else {
+		Write-Host "Skipping Start menu pin removal — this block is for Windows 10 only." -ForegroundColor Gray
+	}
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
@@ -916,50 +960,7 @@ if ($tweakGeneralExplorerAndOther) {
 # ========================
 # Remove ALL pinned apps from Start Menu (Windows 10 only)
 # ========================
-if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
-    Write-Host "[Status]: Clearing all pinned items from Start Menu..." -ForegroundColor Cyan
 
-    try {
-        # Stop Start menu processes
-        Stop-Process -Name "StartMenuExperienceHost" -Force -ErrorAction SilentlyContinue
-        Stop-Process -Name "ShellExperienceHost" -Force -ErrorAction SilentlyContinue
-
-        # Clear Start menu layout database (main location for pinned tiles)
-        $startLayoutPath = "$env:LocalAppData\TileDataLayer\Database"
-        if (Test-Path $startLayoutPath) {
-            Remove-Item -Path "$startLayoutPath\vedatamodel.edb" -Force -ErrorAction SilentlyContinue
-            Remove-Item -Path "$startLayoutPath\vedatamodel*.edb" -Force -ErrorAction SilentlyContinue
-            Write-Host "Cleared Start menu layout database" -ForegroundColor Yellow
-        }
-
-        # Clear CloudStore cache (syncs pinned items across devices)
-        $cloudStorePath = "$env:LocalAppData\Microsoft\Windows\CloudStore"
-        if (Test-Path $cloudStorePath) {
-            Remove-Item -Path "$cloudStorePath\*" -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Host "Cleared CloudStore cache" -ForegroundColor Yellow
-        }
-
-        # Delete cached Start menu layout files
-        $cachedLayoutPath = "$env:LocalAppData\Microsoft\Windows\Shell"
-        Remove-Item -Path "$cachedLayoutPath\LayoutModification.xml" -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path "$cachedLayoutPath\CloudStoreCache*" -Recurse -Force -ErrorAction SilentlyContinue
-
-        # Restart explorer to rebuild Start menu
-        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 3
-        Start-Process explorer
-
-        Write-Host "Success: All pinned items removed from Start Menu." -ForegroundColor Green
-        Write-Host "Open Start menu to verify — it should be completely empty." -ForegroundColor Cyan
-    }
-    catch {
-        Write-Warning "Error while clearing Start menu pins: $_"
-        Write-Host "You can try manually: Settings → Personalization → Start → 'Choose which folders appear on Start' → turn everything off, then restart explorer." -ForegroundColor DarkYellow
-    }
-}
-else {
-    Write-Host "Skipping Start menu pin removal — this block is for Windows 10 only." -ForegroundColor Gray
-}
 
 # ?? ASK USER
 # ?? INSTALL APPS
