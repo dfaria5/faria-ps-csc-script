@@ -270,6 +270,8 @@ if ($manageServices) {
 	$autoServices = @(
 		"Spooler",
 		"WlanSvc",
+		"LanmanServer",
+		"LanmanWorkstation",
 		"EventLog",
 		"AudioSrv",
 		"AudioEndpointBuilder",
@@ -277,6 +279,7 @@ if ($manageServices) {
 		"AppReadiness",
 		"AppXSvc",
 		"ClipSVC",
+		"DispBrokerDesktopSvc",
 		"ShellHWDetection",
 		"Themes",
 		"WpnService",
@@ -304,7 +307,6 @@ if ($manageServices) {
 		"Netlogon",
 		"PrintWorkflowUserSvc*",
 		"TermService",
-		"LanmanServer",
 		"shpamsvc",
 		"sdclt",
 		"WwanSvc",
@@ -336,7 +338,6 @@ if ($manageServices) {
 		"DevicePickerUserSvc_*",
 		"DevicesFlowUserSvc_*",
 		"Dhcp",
-        "DispBrokerDesktopSvc",
 		"DisplayEnhancementService",
 		"DmEnrollmentSvc",
 		"EFS",
@@ -357,7 +358,6 @@ if ($manageServices) {
         "InventorySvc",
 		"IpxlatCfgSvc",
 		"KtmRm",
-		"LanmanWorkstation",
 		"LicenseManager",
 		"LxpSvc",
 		"MSDTC",
@@ -533,7 +533,7 @@ if ($manageServices) {
         } catch {
             try {
                 sc.exe config $svc start= delayed-auto | Out-Null
-                Write-Host "Status: Set $svc to Auto Start (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "Status: Set $svc to Auto Start Delayed (via sc.exe)" -ForegroundColor Yellow
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
@@ -911,6 +911,54 @@ if ($tweakGeneralExplorerAndOther) {
 	} catch {
 		Write-Warning "Failed to enable DirectPlay: $_"
 	}
+}
+
+# ========================
+# Remove ALL pinned apps from Start Menu (Windows 10 only)
+# ========================
+if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
+    Write-Host "[Status]: Clearing all pinned items from Start Menu..." -ForegroundColor Cyan
+
+    try {
+        # Stop Start menu processes
+        Stop-Process -Name "StartMenuExperienceHost" -Force -ErrorAction SilentlyContinue
+        Stop-Process -Name "ShellExperienceHost" -Force -ErrorAction SilentlyContinue
+
+        # Clear Start menu layout database (main location for pinned tiles)
+        $startLayoutPath = "$env:LocalAppData\TileDataLayer\Database"
+        if (Test-Path $startLayoutPath) {
+            Remove-Item -Path "$startLayoutPath\vedatamodel.edb" -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path "$startLayoutPath\vedatamodel*.edb" -Force -ErrorAction SilentlyContinue
+            Write-Host "Cleared Start menu layout database" -ForegroundColor Yellow
+        }
+
+        # Clear CloudStore cache (syncs pinned items across devices)
+        $cloudStorePath = "$env:LocalAppData\Microsoft\Windows\CloudStore"
+        if (Test-Path $cloudStorePath) {
+            Remove-Item -Path "$cloudStorePath\*" -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Host "Cleared CloudStore cache" -ForegroundColor Yellow
+        }
+
+        # Delete cached Start menu layout files
+        $cachedLayoutPath = "$env:LocalAppData\Microsoft\Windows\Shell"
+        Remove-Item -Path "$cachedLayoutPath\LayoutModification.xml" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$cachedLayoutPath\CloudStoreCache*" -Recurse -Force -ErrorAction SilentlyContinue
+
+        # Restart explorer to rebuild Start menu
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 3
+        Start-Process explorer
+
+        Write-Host "Success: All pinned items removed from Start Menu." -ForegroundColor Green
+        Write-Host "Open Start menu to verify — it should be completely empty." -ForegroundColor Cyan
+    }
+    catch {
+        Write-Warning "Error while clearing Start menu pins: $_"
+        Write-Host "You can try manually: Settings → Personalization → Start → 'Choose which folders appear on Start' → turn everything off, then restart explorer." -ForegroundColor DarkYellow
+    }
+}
+else {
+    Write-Host "Skipping Start menu pin removal — this block is for Windows 10 only." -ForegroundColor Gray
 }
 
 # ?? ASK USER
