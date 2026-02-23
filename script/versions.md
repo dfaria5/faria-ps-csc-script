@@ -19,6 +19,7 @@ This text file includes all the details and configurations about each version of
   - To Do.
   - Phone Link.
 - Disables Microsoft telemetry and optimises Windows services.
+- Disables BitLocker and decrypts all drives.
 - Other custom set Windows preferences.
   - Desktop preferences.
     - Show classic desktop icons.
