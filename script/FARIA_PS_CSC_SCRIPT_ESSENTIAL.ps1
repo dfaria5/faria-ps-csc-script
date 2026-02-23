@@ -729,6 +729,80 @@ if ($setPowerPlanUltimate) {
 # ========================
 if ($forceDisableBitlocker) {
 	try {
+        # 1. Decrypt all volumes and wait for completion
+        $volumes = Get-BitLockerVolume
+        if ($volumes.Count -gt 0) {
+            Write-Host "Found $($volumes.Count) encrypted volume(s). Starting decryption..." -ForegroundColor Yellow
+
+            foreach ($vol in $volumes) {
+                $mount = $vol.MountPoint
+                $status = $vol.VolumeStatus
+
+                if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress") {
+                    Write-Host "  Decrypting $mount..." -ForegroundColor Yellow
+                    Disable-BitLocker -MountPoint $mount -ErrorAction Continue
+                }
+
+                # Remove protectors
+                $protectors = $vol.KeyProtector
+                foreach ($p in $protectors) {
+                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
+                }
+            }
+
+            # WAIT until all volumes are FullyDecrypted
+            Write-Host "Waiting for decryption to finish (this may take a while)..." -ForegroundColor Cyan
+            do {
+                Start-Sleep -Seconds 30
+                $stillDecrypting = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
+                if ($stillDecrypting) {
+                    $percent = $stillDecrypting[0].EncryptionPercentage
+                    Write-Host "  Decryption progress: $percent% remaining on $($stillDecrypting[0].MountPoint)" -ForegroundColor Yellow
+                }
+            } while ($stillDecrypting)
+
+            Write-Host "Decryption complete on all drives!" -ForegroundColor Green
+        } else {
+            Write-Host "No BitLocker encryption found." -ForegroundColor Green
+        }
+
+        # 2. Apply permanent lockdown policies (ignore missing path error)
+        Write-Host "Applying permanent BitLocker disable policies..." -ForegroundColor Cyan
+
+        $fvePath = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
+        if (-not (Test-Path $fvePath)) { New-Item -Path $fvePath -Force | Out-Null }
+
+        Set-ItemProperty -Path $fvePath -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force -ErrorAction Continue
+        Set-ItemProperty -Path $fvePath -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
+        Set-ItemProperty -Path $fvePath -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
+
+        # Device Encryption policy (create path if missing)
+        $dePath = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption"
+        if (-not (Test-Path $dePath)) { New-Item -Path $dePath -Force | Out-Null }
+        Set-ItemProperty -Path $dePath -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
+
+        # Disable the Device Encryption service (prevents toggle from working)
+        Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
+        Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
+
+        Write-Host "BitLocker permanently disabled and blocked." -ForegroundColor Green
+        Write-Host "UI toggle should now be grayed out/unavailable after reboot." -ForegroundColor Yellow
+
+        # 3. Show final status
+        manage-bde -status
+
+        # 4. Reboot to fully apply policies
+        $rebootNow = Read-Host "`nReboot now to apply all changes? [Y/N]"
+        if ($rebootNow -match '^[Yy]$') {
+            Write-Host "Rebooting in 5 seconds..." -ForegroundColor Yellow
+            Start-Sleep -Seconds 5
+            Restart-Computer -Force
+        }
+    }
+    catch {
+        Write-Error "Error during BitLocker disable: $_"
+    }
+	<# try {
         # 1. Decrypt all BitLocker-protected volumes
         $volumes = Get-BitLockerVolume
         if ($volumes.Count -gt 0) {
@@ -793,7 +867,7 @@ if ($forceDisableBitlocker) {
     } catch {
         Write-Error "Error during BitLocker disable: $_"
         Write-Host "Try manual commands: manage-bde -off C:" -ForegroundColor Red
-    }
+    } #>
 }
 
 # ========================
