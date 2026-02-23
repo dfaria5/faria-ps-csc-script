@@ -88,14 +88,14 @@ Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osN
 # ========================
 #  START
 # ========================
-Write-Host "Status: Script excuted and started! Recommended not to use your desktop while the script is running." -ForegroundColor Green
+Write-Host "Status: Script excuted and started! Recommended not to use your desktop while the script is running." -ForegroundColor White -BackgroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
 # ========================
 #  REMOVE UNWANTED/BLOAT APPS
 # ========================
 if ($removeApps) {
-    Write-Host "[Status]: Uninstalling unwanted/bloat apps..." -ForegroundColor Cyan
+    Write-Host "[Status]: Uninstalling unwanted/bloat apps..." -ForegroundColor White -BackgroundColor Blue
 
     $apps = @(
         "Microsoft.3DBuilder",
@@ -142,7 +142,7 @@ if ($removeApps) {
     )
 
     foreach ($app in $apps) {
-        Write-Host "Status: Removing $app..." -ForegroundColor Yellow
+        Write-Host "  Removing $app..." -ForegroundColor Cyan
 
 		Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $app } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
 
@@ -150,7 +150,7 @@ if ($removeApps) {
     }
 
 	# Remove any leftovers.
-	Write-Host "Status: Removing any leftovers from bloat apps..." -ForegroundColor Yellow
+	Write-Host "  Removing any leftovers from bloat apps..." -ForegroundColor Cyan
 	# Microsoft Teams
     Get-AppxPackage -AllUsers -Name "MSTeams" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
     Get-AppxPackage -AllUsers -Name "MicrosoftTeams" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
@@ -165,7 +165,7 @@ if ($removeApps) {
     Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*LinkedIn*" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
 
 	# OneDrive
-	Write-Host "Status: Checking for OneDrive installation..." -ForegroundColor Yellow
+	Write-Host "  Checking for OneDrive installation..." -ForegroundColor Cyan
 	function Get-OneDriveUninstallInfo {
 		$keys = @(
 			"HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
@@ -195,7 +195,7 @@ if ($removeApps) {
 	function Invoke-OneDriveUninstall {
 		$entry = Get-OneDriveUninstallInfo
 		if ($entry -and $entry.UninstallString) {
-			Write-Host "Status: Uninstalling OneDrive..." -ForegroundColor Yellow
+			Write-Host "  Uninstalling OneDrive..." -ForegroundColor Cyan
 
 			$cmdLine = $entry.UninstallString
 			if ($cmdLine -match 'msiexec') {
@@ -213,7 +213,7 @@ if ($removeApps) {
 		$oneDriveSetup = @("$env:SystemRoot\SysWOW64\OneDriveSetup.exe", "$env:SystemRoot\System32\OneDriveSetup.exe") | Where-Object { Test-Path $_ -PathType Leaf }
 
 		if ($oneDriveSetup) {
-			Write-Host "Status: Uninstalling OneDrive..." -ForegroundColor Yellow
+			Write-Host "  Uninstalling OneDrive..." -ForegroundColor Cyan
 			taskkill /f /im OneDrive.exe > $null 2>&1
 			foreach ($p in $oneDriveSetup) {
 				Start-Process $p "/uninstall" -NoNewWindow -Wait
@@ -240,10 +240,10 @@ if ($removeApps) {
         Get-ScheduledTask -TaskPath "\Microsoft\OneDrive\" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false -ErrorAction SilentlyContinue
         Get-ScheduledTask -TaskPath "\Microsoft\Windows\OneDrive\" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false -ErrorAction SilentlyContinue
 
-        Write-Host "Status: OneDrive uninstalled..." -ForegroundColor Yellow
+        Write-Host "  OneDrive uninstalled." -ForegroundColor Cyan
     }
     else {
-        Write-Host "Status: OneDrive is not installed. Skipping..." -ForegroundColor Yellow
+        Write-Host "  OneDrive is not installed. Skipping..." -ForegroundColor Cyan
     }
 }
 
@@ -251,7 +251,7 @@ if ($removeApps) {
 #  DISABLE TELEMETRY
 # ========================
 if ($disableTelemetry) {
-    Write-Host "[Status]: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor Cyan
+    Write-Host "[Status]: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor White -BackgroundColor Blue
     New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name AllowTelemetry -Value 0 -Type DWord
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name Enabled -Value 0
@@ -259,13 +259,14 @@ if ($disableTelemetry) {
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Value 0
+	Write-Host "  Microsoft Telemtry & Cortana disabled." -ForegroundColor Cyan
 }
 
 # ========================
 #  OPTIMIZING SERVICES
 # ========================
 if ($manageServices) {
-    Write-Host "[Status]: Optimizing services..." -ForegroundColor Cyan
+    Write-Host "[Status]: Optimizing services..." -ForegroundColor White -BackgroundColor Blue
 
 	# Because of the issue before where Start Menu on Windows 11 would take up to a minute or more to start
 	$autoServices = @(
@@ -530,11 +531,11 @@ if ($manageServices) {
 	foreach ($svc in $autoServices) {
         try {
             Set-Service -Name $svc -StartupType Automatic -ErrorAction Stop
-            Write-Host "Status: Set $svc to Auto Start" -ForegroundColor Yellow
+            Write-Host "  Set $svc to Auto Start" -ForegroundColor Cyan
         } catch {
             try {
                 sc.exe config $svc start= delayed-auto | Out-Null
-                Write-Host "Status: Set $svc to Auto Start Delayed (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "  Set $svc to Auto Start Delayed (via sc.exe)" -ForegroundColor Cyan
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
@@ -544,11 +545,11 @@ if ($manageServices) {
     foreach ($svc in $manualServices) {
         try {
             Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
-            Write-Host "Status: Set $svc to Manual" -ForegroundColor Yellow
+            Write-Host "  Set $svc to Manual" -ForegroundColor Cyan
         } catch {
             try {
                 sc.exe config $svc start= demand | Out-Null
-                Write-Host "Status: Set $svc to Manual (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "  Set $svc to Manual (via sc.exe)" -ForegroundColor Cyan
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
@@ -558,24 +559,26 @@ if ($manageServices) {
     foreach ($svc in $disableServices) {
         try {
             Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
-            Write-Host "Status: Set $svc to Disabled" -ForegroundColor Yellow
+            Write-Host "  Set $svc to Disabled" -ForegroundColor Cyan
         } catch {
             try {
                 sc.exe config $svc start= disabled | Out-Null
-                Write-Host "Status: Set $svc to Disabled (via sc.exe)" -ForegroundColor Yellow
+                Write-Host "  Set $svc to Disabled (via sc.exe)" -ForegroundColor Cyan
             } catch {
                 Write-Warning "Could not change $svc ($_)" 
             }
         }
     }
+	
+	Write-Host "  All services optimized and set." -ForegroundColor Cyan
 }
 
 # ========================
 #  POWER SETTINGS
 # ========================
 if ($setPowerPlanUltimate) {
-    Write-Host "[Status]: Setting power management options..." -ForegroundColor Cyan
-	Write-Host "Status: Setting Ultimate Performance power plan..." -ForegroundColor Yellow
+    Write-Host "[Status]: Setting power management options..." -ForegroundColor White -BackgroundColor Blue
+	Write-Host "  Setting Ultimate Performance power plan..." -ForegroundColor Cyan
 
     $regPath      = "HKCU:\Software\F_PS_CSC_S"
     $regName      = "UltimatePlanGUID"
@@ -616,22 +619,22 @@ if ($setPowerPlanUltimate) {
     $existing = Get-PowerSchemeGuids
     if ($saved -and ($existing -contains $saved)) {
         $ultimateGUID = $saved
-        Write-Host "Status: Loaded Ultimate plan GUID from registry and verified it exists: $ultimateGUID" -ForegroundColor Yellow
+        Write-Host "  Loaded Ultimate plan GUID from registry and verified it exists: $ultimateGUID" -ForegroundColor Cyan
     }
     else {
         if ($saved -and -not ($existing -contains $saved)) {
-            Write-Host "Status: Registry GUID not present anymore (plan deleted). Recreating..." -ForegroundColor Yellow
+            Write-Host "  Registry GUID not present anymore (plan deleted). Recreating..." -ForegroundColor Cyan
         } else {
-            Write-Host "Status: No registry GUID found. Ensuring plan exists..." -ForegroundColor Yellow
+            Write-Host "  No registry GUID found. Ensuring plan exists..." -ForegroundColor Cyan
         }
 
         if ($existing -contains $templateGUID) {
             $ultimateGUID = $templateGUID
-            Write-Host "Status: Found existing Ultimate Performance plan from template GUID." -ForegroundColor Yellow
+            Write-Host "  Found existing Ultimate Performance plan from template GUID." -ForegroundColor Cyan
         } else {
             try {
                 $ultimateGUID = New-UltimateFromTemplate
-                Write-Host "Status: Created Ultimate Performance plan: $ultimateGUID" -ForegroundColor Yellow
+                Write-Host "  Created Ultimate Performance plan: $ultimateGUID" -ForegroundColor Cyan
             } catch {
                 Write-Warning "Failed to create Ultimate Performance plan: $_"
             }
@@ -640,7 +643,7 @@ if ($setPowerPlanUltimate) {
         if ($ultimateGUID) {
             if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
             Set-ItemProperty -Path $regPath -Name $regName -Value $ultimateGUID
-            Write-Host "Status: Saved Ultimate plan GUID to registry." -ForegroundColor Yellow
+            Write-Host "  Saved Ultimate plan GUID to registry." -ForegroundColor Cyan
         }
     }
 
@@ -648,7 +651,7 @@ if ($setPowerPlanUltimate) {
     if ($ultimateGUID) {
         try {
             powercfg -setactive $ultimateGUID
-            Write-Host "Status: Ultimate Performance plan activated." -ForegroundColor Yellow
+            Write-Host "  Ultimate Performance plan activated." -ForegroundColor Cyan
         } catch {
             Write-Warning "Failed to activate Ultimate Performance plan. $_"
         }
@@ -667,13 +670,13 @@ if ($setPowerPlanUltimate) {
             powercfg -change -standby-timeout-dc 0
             powercfg -setdcvalueindex $ultimateGUID SUB_VIDEO VIDEOIDLE 0
 
-			Write-Host "Status: Timeouts (AC) and (DC) set to never for Ultimate plan." -ForegroundColor Yellow
+			Write-Host "  Timeouts (AC) and (DC) set to never for Ultimate plan." -ForegroundColor Cyan
         } catch {
             Write-Warning "Failed to set power plan timeout values. $_"
         }
     }
 
-	Write-Host "Status: Changing power settings for network adapters..." -ForegroundColor Yellow
+	Write-Host " Changing power settings for network adapters..." -ForegroundColor Cyan
 
 	# Get all network adapters, including hidden or disabled.
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
@@ -688,7 +691,7 @@ if ($setPowerPlanUltimate) {
 	}
 
 	foreach ($adapter in $netAdapters) {
-    Write-Host "Status: Changing network power settings for $($adapter.Name)" -ForegroundColor Yellow
+    Write-Host "  Changing network power settings for $($adapter.Name)" -ForegroundColor Cyan
 
 		try {
 			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
@@ -710,7 +713,7 @@ if ($setPowerPlanUltimate) {
 					# powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
 					Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -RedirectStandardOutput $null -RedirectStandardError $null -NoNewWindow -Wait
 				}
-				Write-Host "Status: Network power settings for $($adapter.Name) set." -ForegroundColor Yellow
+				Write-Host "  Network power settings for $($adapter.Name) set." -ForegroundColor Cyan
 			}
 		}
 		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
@@ -718,7 +721,7 @@ if ($setPowerPlanUltimate) {
 		if ($setDnsYes -eq $true) {
 			try {
 				Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-			} catch { <# Write-Host "Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Red #> }
+			} catch { Write-Host "  Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Yellow }
 		} else { <# Skips this and does nothing. #> }
 		
 	}
@@ -728,6 +731,7 @@ if ($setPowerPlanUltimate) {
 #  FORCE DISABLE BITLOCKER
 # ========================
 if ($forceDisableBitlocker) {
+	Write-Host "[Status]: Disabling BitLocker..." -ForegroundColor White -BackgroundColor Blue
 	try {
         $volumes = Get-BitLockerVolume
         $needsAction = $false
@@ -738,14 +742,13 @@ if ($forceDisableBitlocker) {
             $protection = $vol.ProtectionStatus
             $percent = $vol.EncryptionPercentage
 
-            Write-Host "Drive $mount - Status: $status, Protection: $protection, Encrypted: $percent%" -ForegroundColor Cyan
+            Write-Host "Drive $mount - Status: $status, Protection: $protection, Encrypted: $percent%  " -ForegroundColor Cyan
 
             if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress" -or $protection -eq "On") {
                 $needsAction = $true
-                Write-Host "  Action needed on $mount. Starting decryption..." -ForegroundColor Yellow
+                Write-Host "Drive $mount encrypted. Starting decryption...  " -ForegroundColor Black -BackgroundColor Yellow
                 Disable-BitLocker -MountPoint $mount -ErrorAction Continue
 
-                # Remove protectors
                 $protectors = $vol.KeyProtector
                 foreach ($p in $protectors) {
                     Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
@@ -754,204 +757,42 @@ if ($forceDisableBitlocker) {
         }
 
         if (-not $needsAction) {
-            Write-Host "No drives require decryption. BitLocker is already off." -ForegroundColor Green
+            Write-Host "  BitLocker is already off." -ForegroundColor Cyan
         } else {
             # Wait for decryption to complete
-            Write-Host "Waiting for decryption to finish..." -ForegroundColor Cyan
+            Write-Host "Decrypting drive...  " -ForegroundColor Black -BackgroundColor Yellow
             do {
                 Start-Sleep -Seconds 30
                 $stillWorking = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
                 if ($stillWorking) {
                     $percent = $stillWorking[0].EncryptionPercentage
-                    Write-Host "  Progress: $percent% remaining on $($stillWorking[0].MountPoint)" -ForegroundColor Yellow
+                    Write-Host "Progress: $percent% remaining on $($stillWorking[0].MountPoint)  " -ForegroundColor Black -BackgroundColor Yellow
                 }
             } while ($stillWorking)
 
-            Write-Host "Decryption complete on all drives." -ForegroundColor Green
+            Write-Host "  Decryption completed on all drives." -ForegroundColor Cyan
         }
 
-        # Apply lockdown policies (ignore missing path)
-        Write-Host "Applying BitLocker disable policies..." -ForegroundColor Cyan
-
-        $fvePath = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
-        if (-not (Test-Path $fvePath)) { New-Item -Path $fvePath -Force | Out-Null }
-
-        Set-ItemProperty -Path $fvePath -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
-        Set-ItemProperty -Path $fvePath -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
-        Set-ItemProperty -Path $fvePath -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force -ErrorAction Continue
-
-        # Device Encryption (create path if missing)
-        $dePath = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption"
-        if (-not (Test-Path $dePath)) { New-Item -Path $dePath -Force | Out-Null }
-        Set-ItemProperty -Path $dePath -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
-
-        # Disable Device Encryption service
         Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
         Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
 
-        Write-Host "BitLocker fully disabled and blocked from re-enablement." -ForegroundColor Green
-        Write-Host "UI toggle should be unavailable after reboot." -ForegroundColor Yellow
+        Write-Host "  BitLocker fully disabled." -ForegroundColor Cyan
 
         manage-bde -status
-
-        $reboot = Read-Host "`nReboot now to finalize? [Y/N]"
-        if ($reboot -match '^[Yy]$') {
-            Restart-Computer -Force
-        }
     }
     catch {
         Write-Error "Error: $_"
     }
-	<# try {
-        # 1. Decrypt all volumes and wait for completion
-        $volumes = Get-BitLockerVolume
-        if ($volumes.Count -gt 0) {
-            Write-Host "Found $($volumes.Count) encrypted volume(s). Starting decryption..." -ForegroundColor Yellow
-
-            foreach ($vol in $volumes) {
-                $mount = $vol.MountPoint
-                $status = $vol.VolumeStatus
-
-                if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress") {
-                    Write-Host "  Decrypting $mount..." -ForegroundColor Yellow
-                    Disable-BitLocker -MountPoint $mount -ErrorAction Continue
-                }
-
-                # Remove protectors
-                $protectors = $vol.KeyProtector
-                foreach ($p in $protectors) {
-                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
-                }
-            }
-
-            # WAIT until all volumes are FullyDecrypted
-            Write-Host "Waiting for decryption to finish (this may take a while)..." -ForegroundColor Cyan
-            do {
-                Start-Sleep -Seconds 30
-                $stillDecrypting = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
-                if ($stillDecrypting) {
-                    $percent = $stillDecrypting[0].EncryptionPercentage
-                    Write-Host "  Decryption progress: $percent% remaining on $($stillDecrypting[0].MountPoint)" -ForegroundColor Yellow
-                }
-            } while ($stillDecrypting)
-
-            Write-Host "Decryption complete on all drives!" -ForegroundColor Green
-        } else {
-            Write-Host "No BitLocker encryption found." -ForegroundColor Green
-        }
-
-        # 2. Apply permanent lockdown policies (ignore missing path error)
-        Write-Host "Applying permanent BitLocker disable policies..." -ForegroundColor Cyan
-
-        $fvePath = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
-        if (-not (Test-Path $fvePath)) { New-Item -Path $fvePath -Force | Out-Null }
-
-        Set-ItemProperty -Path $fvePath -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force -ErrorAction Continue
-        Set-ItemProperty -Path $fvePath -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
-        Set-ItemProperty -Path $fvePath -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
-
-        # Device Encryption policy (create path if missing)
-        $dePath = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption"
-        if (-not (Test-Path $dePath)) { New-Item -Path $dePath -Force | Out-Null }
-        Set-ItemProperty -Path $dePath -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
-
-        # Disable the Device Encryption service (prevents toggle from working)
-        Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
-        Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
-
-        Write-Host "BitLocker permanently disabled and blocked." -ForegroundColor Green
-        Write-Host "UI toggle should now be grayed out/unavailable after reboot." -ForegroundColor Yellow
-
-        # 3. Show final status
-        manage-bde -status
-
-        # 4. Reboot to fully apply policies
-        $rebootNow = Read-Host "`nReboot now to apply all changes? [Y/N]"
-        if ($rebootNow -match '^[Yy]$') {
-            Write-Host "Rebooting in 5 seconds..." -ForegroundColor Yellow
-            Start-Sleep -Seconds 5
-            Restart-Computer -Force
-        }
-    }
-    catch {
-        Write-Error "Error during BitLocker disable: $_"
-    } #>
-	<# try {
-        # 1. Decrypt all BitLocker-protected volumes
-        $volumes = Get-BitLockerVolume
-        if ($volumes.Count -gt 0) {
-            Write-Host "Found $($volumes.Count) encrypted volume(s). Starting decryption..." -ForegroundColor Yellow
-
-            foreach ($vol in $volumes) {
-                $mount = $vol.MountPoint
-                $status = $vol.VolumeStatus
-
-                if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress") {
-                    Write-Host "  Decrypting $mount..." -ForegroundColor Yellow
-                    Disable-BitLocker -MountPoint $mount -ErrorAction Continue
-                }
-
-                # Remove all key protectors
-                $protectors = $vol.KeyProtector
-                foreach ($p in $protectors) {
-                    Write-Host "  Removing protector: $($p.KeyProtectorType)" -ForegroundColor DarkYellow
-                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
-                }
-            }
-
-            Write-Host "Decryption started. Progress can be checked with: manage-bde -status" -ForegroundColor Green
-        } else {
-            Write-Host "No BitLocker encryption found." -ForegroundColor Green
-        }
-
-        # 2. Apply Group Policy + Registry to BLOCK BitLocker forever
-        Write-Host "Applying permanent BitLocker disable policies..." -ForegroundColor Cyan
-
-        # GPO paths (works on Pro/Enterprise; Home ignores but registry covers it)
-        $gpoPaths = @(
-            "HKLM:\SOFTWARE\Policies\Microsoft\FVE",
-            "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\FVE"
-        )
-
-        foreach ($path in $gpoPaths) {
-            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
-
-            # Disable BitLocker entirely
-            Set-ItemProperty -Path $path -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force
-            Set-ItemProperty -Path $path -Name "OSRequireActiveDirectoryBackup" -Value 0 -Type DWord -Force
-            Set-ItemProperty -Path $path -Name "FDVRequireActiveDirectoryBackup" -Value 0 -Type DWord -Force
-            Set-ItemProperty -Path $path -Name "RDVAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
-
-            # Block new encryption
-            Set-ItemProperty -Path $path -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
-            Set-ItemProperty -Path $path -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
-        }
-
-        # Registry-level force-disable (works on Home too)
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\FVE" -Name "DisableBitLocker" -Value 1 -Type DWord -Force -ErrorAction Continue
-
-        # Disable Device Encryption (Settings toggle)
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption" -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
-
-        Write-Host "BitLocker fully disabled + blocked from re-enablement." -ForegroundColor Green
-        Write-Host "Changes applied via Group Policy + Registry. Reboot recommended." -ForegroundColor Yellow
-
-        # Optional: Show current status
-        manage-bde -status
-    } catch {
-        Write-Error "Error during BitLocker disable: $_"
-        Write-Host "Try manual commands: manage-bde -off C:" -ForegroundColor Red
-    } #>
 }
 
 # ========================
 #  FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
 # ========================
 if ($tweakGeneralExplorerAndOther) {
-    Write-Host "[Status]: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor Cyan
+    Write-Host "[Status]: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor White -BackgroundColor Blue
 
     # Basic Explorer tweaks
-	Write-Host "Status: Configuring file explorer settings..." -ForegroundColor Yellow
+	Write-Host "  Configuring file explorer settings..." -ForegroundColor Cyan
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name HideFileExt -Value 0
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name Hidden -Value 1
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name LaunchTo -Value 1
@@ -967,7 +808,7 @@ if ($tweakGeneralExplorerAndOther) {
 	}
 
     # Classic desktop icons
-	Write-Host "Status: Configuring desktop settings..." -ForegroundColor Yellow
+	Write-Host "  Configuring desktop settings..." -ForegroundColor Cyan
     $desktopIcons = @{
 		"{59031a47-3f72-44a7-89c5-5595fe6b30ee}" = 0  # User's Files Folder
         "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" = 0  # This PC/Computer
@@ -1040,67 +881,7 @@ if ($tweakGeneralExplorerAndOther) {
 	# Set wallpaper
 	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value $wallpaperPath -Force
 
-	<# # SOLID COLOR
-	# Wallpaper Mode set to Solid Color
-	Set-ItemProperty -Path $wallpaperModePath -Name "BackgroundType" -Type DWord -Value 1 -Force
-	# Clear any wallpaper path
-	Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WallPaper" -Value "" -Force
-	# Set the actual solid color
-	Set-ItemProperty -Path "HKCU:\Control Panel\Colors" -Name "Background" -Value "15 15 15" -Force #>
-
-	<#
-	$desktopReg = "HKCU:\Control Panel\Desktop"
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Type DWord -Value 0
-	Set-ItemProperty -Path $desktopReg -Name Wallpaper -Value $wallpaperPath
-	Set-ItemProperty -Path $desktopReg -Name WallpaperStyle -Value 10
-	Set-ItemProperty -Path $desktopReg -Name TileWallpaper -Value 0
-	#>
-	
-	
-	<# if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
-		Write-Host "Status: Start Menu..." -ForegroundColor Yellow
-		try {
-			# Stop Start menu processes
-			Stop-Process -Name "StartMenuExperienceHost" -Force -ErrorAction SilentlyContinue
-			Stop-Process -Name "ShellExperienceHost" -Force -ErrorAction SilentlyContinue
-
-			# Clear Start menu layout database (main location for pinned tiles)
-			$startLayoutPath = "$env:LocalAppData\TileDataLayer\Database"
-			if (Test-Path $startLayoutPath) {
-				Remove-Item -Path "$startLayoutPath\vedatamodel.edb" -Force -ErrorAction SilentlyContinue
-				Remove-Item -Path "$startLayoutPath\vedatamodel*.edb" -Force -ErrorAction SilentlyContinue
-				Write-Host "Cleared Start menu layout database" -ForegroundColor Yellow
-			}
-
-			# Clear CloudStore cache (syncs pinned items across devices)
-			$cloudStorePath = "$env:LocalAppData\Microsoft\Windows\CloudStore"
-			if (Test-Path $cloudStorePath) {
-				Remove-Item -Path "$cloudStorePath\*" -Recurse -Force -ErrorAction SilentlyContinue
-				Write-Host "Cleared CloudStore cache" -ForegroundColor Yellow
-			}
-
-			# Delete cached Start menu layout files
-			$cachedLayoutPath = "$env:LocalAppData\Microsoft\Windows\Shell"
-			Remove-Item -Path "$cachedLayoutPath\LayoutModification.xml" -Force -ErrorAction SilentlyContinue
-			Remove-Item -Path "$cachedLayoutPath\CloudStoreCache*" -Recurse -Force -ErrorAction SilentlyContinue
-
-			# Restart explorer & desktop to rebuild Start menu
-			RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
-			Stop-Process -Name explorer -Force
-
-			Write-Host "Success: All pinned items removed from Start Menu." -ForegroundColor Green
-			Write-Host "Open Start menu to verify — it should be completely empty." -ForegroundColor Cyan
-		}
-		catch {
-			Write-Warning "Error while clearing Start menu pins: $_"
-			Write-Host "You can try manually: Settings → Personalization → Start → 'Choose which folders appear on Start' → turn everything off, then restart explorer." -ForegroundColor DarkYellow
-		}
-	}
-	else {
-		Write-Host "Skipping Start menu pin removal — this block is for Windows 10 only." -ForegroundColor Gray
-	} #>
-
-	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
+	Write-Host "  Configuring taskbar settings..." -ForegroundColor Cyan
 
 	# Taskbar search display set to icon (Windows 10)
 	Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -Type DWord
@@ -1116,7 +897,7 @@ if ($tweakGeneralExplorerAndOther) {
 	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
 
 	# Set Performance options preset to "Best Performance" to "Custom"
-	Write-Host "Status: Applying custom set performance options..." -ForegroundColor Yellow
+	Write-Host "  Applying custom set performance options..." -ForegroundColor Cyan
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 2
 	Start-Sleep -Milliseconds 500
 	Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name VisualFXSetting -Type DWord -Value 3
@@ -1163,14 +944,14 @@ if ($tweakGeneralExplorerAndOther) {
 	} else { <# Nothing #> }
 
     # Restart explorer.exe and Desktop to apply changes
-	Write-Host "Status: Restarting Explorer and Desktop..." -ForegroundColor Yellow
+	Write-Host "  Restarting Explorer and Desktop..." -ForegroundColor Cyan
 	# Restart desktop
 	RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
 	# Restart explorer.exe
     Stop-Process -Name explorer -Force
 
 	# Enable DirectPlay. This is for some old games (for example: GTA San Andreas)
-	Write-Host "Status: Enabling legacy feature 'DirectPlay'..." -ForegroundColor Yellow
+	Write-Host "  Enabling legacy feature 'DirectPlay'..." -ForegroundColor Cyan
 	try {
 		DISM /Online /Enable-Feature /FeatureName:DirectPlay /All /NoRestart | Out-Null
 	} catch {
@@ -1196,7 +977,7 @@ if ($installapps -match '^[Yy]$') {
 #  INSTALL ESSENTIAL APPS
 # ========================
 if ($installapps) {
-    Write-Host "[Status]: Installing new apps..." -ForegroundColor Cyan
+    Write-Host "[Status]: Installing new apps..." -ForegroundColor White -BackgroundColor Blue
 
     # List of apps to install
     $apps = @(
@@ -1242,14 +1023,14 @@ if ($installapps) {
         $isInstalled = winget list --id $app --accept-source-agreements --accept-package-agreements 2>$null | Select-String $app
 
         if ($isInstalled) {
-            Write-Host "Status: $app already installed. Skipping..." -ForegroundColor Yellow
+            Write-Host "  $app already installed. Skipping..." -ForegroundColor Cyan
             continue
         }
 
-        Write-Host "Status: Installing $app..." -ForegroundColor Yellow
+        Write-Host "  Installing $app..." -ForegroundColor Cyan
         try {
             winget install --id $app --silent --accept-source-agreements --accept-package-agreements -e --disable-interactivity --no-upgrade | Out-Null
-            Write-Host "Status: $app installed successfully!" -ForegroundColor Yellow
+            Write-Host "  $app installed successfully!" -ForegroundColor Cyan
         } catch {
             Write-Warning ("Failed to install " + $app + ": " + $_)
         }
@@ -1260,7 +1041,7 @@ if ($installapps) {
 # ========================
 #  END
 # ========================
-Write-Host "`nScript completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor Green
+Write-Host "`nScript completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor White -BackgroundColor Green
 $restart = Read-Host "Restart your PC now? (Y/N): "
 
 if ($restart -match '^[Yy]$') {
