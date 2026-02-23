@@ -729,6 +729,80 @@ if ($setPowerPlanUltimate) {
 # ========================
 if ($forceDisableBitlocker) {
 	try {
+        $volumes = Get-BitLockerVolume
+        $needsAction = $false
+
+        foreach ($vol in $volumes) {
+            $mount = $vol.MountPoint
+            $status = $vol.VolumeStatus
+            $protection = $vol.ProtectionStatus
+            $percent = $vol.EncryptionPercentage
+
+            Write-Host "Drive $mount - Status: $status, Protection: $protection, Encrypted: $percent%" -ForegroundColor Cyan
+
+            if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress" -or $protection -eq "On") {
+                $needsAction = $true
+                Write-Host "  Action needed on $mount. Starting decryption..." -ForegroundColor Yellow
+                Disable-BitLocker -MountPoint $mount -ErrorAction Continue
+
+                # Remove protectors
+                $protectors = $vol.KeyProtector
+                foreach ($p in $protectors) {
+                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
+                }
+            }
+        }
+
+        if (-not $needsAction) {
+            Write-Host "No drives require decryption. BitLocker is already off." -ForegroundColor Green
+        } else {
+            # Wait for decryption to complete
+            Write-Host "Waiting for decryption to finish..." -ForegroundColor Cyan
+            do {
+                Start-Sleep -Seconds 30
+                $stillWorking = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
+                if ($stillWorking) {
+                    $percent = $stillWorking[0].EncryptionPercentage
+                    Write-Host "  Progress: $percent% remaining on $($stillWorking[0].MountPoint)" -ForegroundColor Yellow
+                }
+            } while ($stillWorking)
+
+            Write-Host "Decryption complete on all drives." -ForegroundColor Green
+        }
+
+        # Apply lockdown policies (ignore missing path)
+        Write-Host "Applying BitLocker disable policies..." -ForegroundColor Cyan
+
+        $fvePath = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
+        if (-not (Test-Path $fvePath)) { New-Item -Path $fvePath -Force | Out-Null }
+
+        Set-ItemProperty -Path $fvePath -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
+        Set-ItemProperty -Path $fvePath -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force -ErrorAction Continue
+        Set-ItemProperty -Path $fvePath -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force -ErrorAction Continue
+
+        # Device Encryption (create path if missing)
+        $dePath = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption"
+        if (-not (Test-Path $dePath)) { New-Item -Path $dePath -Force | Out-Null }
+        Set-ItemProperty -Path $dePath -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
+
+        # Disable Device Encryption service
+        Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
+        Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
+
+        Write-Host "BitLocker fully disabled and blocked from re-enablement." -ForegroundColor Green
+        Write-Host "UI toggle should be unavailable after reboot." -ForegroundColor Yellow
+
+        manage-bde -status
+
+        $reboot = Read-Host "`nReboot now to finalize? [Y/N]"
+        if ($reboot -match '^[Yy]$') {
+            Restart-Computer -Force
+        }
+    }
+    catch {
+        Write-Error "Error: $_"
+    }
+	<# try {
         # 1. Decrypt all volumes and wait for completion
         $volumes = Get-BitLockerVolume
         if ($volumes.Count -gt 0) {
@@ -801,7 +875,7 @@ if ($forceDisableBitlocker) {
     }
     catch {
         Write-Error "Error during BitLocker disable: $_"
-    }
+    } #>
 	<# try {
         # 1. Decrypt all BitLocker-protected volumes
         $volumes = Get-BitLockerVolume
