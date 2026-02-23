@@ -52,6 +52,7 @@ $removeApps						= $true
 $disableTelemetry				= $true
 $manageServices  				= $true
 $setPowerPlanUltimate     		= $true
+$forceDisableBitlocker			= $true
 $tweakGeneralExplorerAndOther	= $true
 $installapps					= $false
 
@@ -724,6 +725,78 @@ if ($setPowerPlanUltimate) {
 }
 
 # ========================
+#  FORCE DISABLE BITLOCKER
+# ========================
+if ($forceDisableBitlocker) {
+	try {
+        # 1. Decrypt all BitLocker-protected volumes
+        $volumes = Get-BitLockerVolume
+        if ($volumes.Count -gt 0) {
+            Write-Host "Found $($volumes.Count) encrypted volume(s). Starting decryption..." -ForegroundColor Yellow
+
+            foreach ($vol in $volumes) {
+                $mount = $vol.MountPoint
+                $status = $vol.VolumeStatus
+
+                if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress") {
+                    Write-Host "  Decrypting $mount..." -ForegroundColor Yellow
+                    Disable-BitLocker -MountPoint $mount -ErrorAction Continue
+                }
+
+                # Remove all key protectors
+                $protectors = $vol.KeyProtector
+                foreach ($p in $protectors) {
+                    Write-Host "  Removing protector: $($p.KeyProtectorType)" -ForegroundColor DarkYellow
+                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
+                }
+            }
+
+            Write-Host "Decryption started. Progress can be checked with: manage-bde -status" -ForegroundColor Green
+        } else {
+            Write-Host "No BitLocker encryption found." -ForegroundColor Green
+        }
+
+        # 2. Apply Group Policy + Registry to BLOCK BitLocker forever
+        Write-Host "Applying permanent BitLocker disable policies..." -ForegroundColor Cyan
+
+        # GPO paths (works on Pro/Enterprise; Home ignores but registry covers it)
+        $gpoPaths = @(
+            "HKLM:\SOFTWARE\Policies\Microsoft\FVE",
+            "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\FVE"
+        )
+
+        foreach ($path in $gpoPaths) {
+            if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+
+            # Disable BitLocker entirely
+            Set-ItemProperty -Path $path -Name "RDVDenyWriteAccess" -Value 1 -Type DWord -Force
+            Set-ItemProperty -Path $path -Name "OSRequireActiveDirectoryBackup" -Value 0 -Type DWord -Force
+            Set-ItemProperty -Path $path -Name "FDVRequireActiveDirectoryBackup" -Value 0 -Type DWord -Force
+            Set-ItemProperty -Path $path -Name "RDVAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
+
+            # Block new encryption
+            Set-ItemProperty -Path $path -Name "AllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
+            Set-ItemProperty -Path $path -Name "OSAllowBitLockerWithoutTPM" -Value 0 -Type DWord -Force
+        }
+
+        # Registry-level force-disable (works on Home too)
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\FVE" -Name "DisableBitLocker" -Value 1 -Type DWord -Force -ErrorAction Continue
+
+        # Disable Device Encryption (Settings toggle)
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\DeviceEncryption" -Name "AllowDeviceEncryption" -Value 0 -Type DWord -Force -ErrorAction Continue
+
+        Write-Host "BitLocker fully disabled + blocked from re-enablement." -ForegroundColor Green
+        Write-Host "Changes applied via Group Policy + Registry. Reboot recommended." -ForegroundColor Yellow
+
+        # Optional: Show current status
+        manage-bde -status
+    } catch {
+        Write-Error "Error during BitLocker disable: $_"
+        Write-Host "Try manual commands: manage-bde -off C:" -ForegroundColor Red
+    }
+}
+
+# ========================
 #  FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
 # ========================
 if ($tweakGeneralExplorerAndOther) {
@@ -836,7 +909,7 @@ if ($tweakGeneralExplorerAndOther) {
 	#>
 	
 	
-	if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
+	<# if ($osInfo.CurrentBuildNumber -lt 22000) {  # Windows 10 only
 		Write-Host "Status: Start Menu..." -ForegroundColor Yellow
 		try {
 			# Stop Start menu processes
@@ -877,7 +950,7 @@ if ($tweakGeneralExplorerAndOther) {
 	}
 	else {
 		Write-Host "Skipping Start menu pin removal — this block is for Windows 10 only." -ForegroundColor Gray
-	}
+	} #>
 
 	Write-Host "Status: Configuring taskbar settings..." -ForegroundColor Yellow
 
