@@ -10,7 +10,10 @@ Simple run powershell custom config script for Windows 10 and 11 that cleans and
 See full details about each version [**here**](script/versions.md).
 
 ## Usage
-Update Windows before running this script.
+
+> [!TIP]
+> It is recommended that you update Windows with its latest updates to have no issues.
+
 1. Open Powershell as admin. (if you dont, the script will relaunch as admin)
 2. Paste and run the comamnd bellow or you can download the script.
 
