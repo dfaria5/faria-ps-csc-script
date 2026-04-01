@@ -2,7 +2,7 @@
     Faria Powershell Custom Setup Config Script Win 10/11
 	Essential Version
     Created by FARIA (github.com/dfaria5)
-	
+
 		    @@@@@@@@@@@@@@@@@@@@@@@@@@
 		   @@@@@@@@@@@@@@@@@@@@@@@@@@
 	      @@@@@  @@@@@@@@@@@@@@@@@@@
@@ -88,14 +88,14 @@ Write-Host ("`nWindows OS Version Detected: {0} | {1} | {2} {3} | {4}`n" -f $osN
 # ========================
 #  START
 # ========================
-Write-Host "Status: Script excuted and started! Recommended not to use your desktop while the script is running." -ForegroundColor White -BackgroundColor Green
+Write-Host "Script excuted and started! Recommended not to use your desktop while the script is running." -ForegroundColor White -BackgroundColor Green
 $ErrorActionPreference = "SilentlyContinue"
 
 # ========================
 #  REMOVE UNWANTED/BLOAT APPS
 # ========================
 if ($removeApps) {
-    Write-Host "[Status]: Uninstalling unwanted/bloat apps..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Uninstalling unwanted/bloat apps..." -ForegroundColor White -BackgroundColor Blue
 
     $apps = @(
         "Microsoft.3DBuilder",
@@ -251,7 +251,7 @@ if ($removeApps) {
 #  DISABLE TELEMETRY
 # ========================
 if ($disableTelemetry) {
-    Write-Host "[Status]: Disabling Microsoft Telemetry & Cortana..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Disabling Microsoft Telemetry & Cortana..." -ForegroundColor White -BackgroundColor Blue
     New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force | Out-Null
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name AllowTelemetry -Value 0 -Type DWord
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name Enabled -Value 0
@@ -266,7 +266,7 @@ if ($disableTelemetry) {
 #  OPTIMIZING SERVICES
 # ========================
 if ($manageServices) {
-    Write-Host "[Status]: Optimizing services..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Optimizing services..." -ForegroundColor White -BackgroundColor Blue
 
 	# Because of the issue before where Start Menu on Windows 11 would take up to a minute or more to start
 	$autoServices = @(
@@ -577,7 +577,7 @@ if ($manageServices) {
 #  POWER SETTINGS
 # ========================
 if ($setPowerPlanUltimate) {
-    Write-Host "[Status]: Setting power management options..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Setting power management options..." -ForegroundColor White -BackgroundColor Blue
 	Write-Host "  Setting Ultimate Performance power plan..." -ForegroundColor Cyan
 
     $regPath      = "HKCU:\Software\F_PS_CSC_S"
@@ -676,7 +676,7 @@ if ($setPowerPlanUltimate) {
         }
     }
 
-	Write-Host " Changing power settings for network adapters..." -ForegroundColor Cyan
+	Write-Host "  Changing power settings for network adapters..." -ForegroundColor Cyan
 
 	# Get all network adapters, including hidden or disabled.
 	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
@@ -712,6 +712,24 @@ if ($setPowerPlanUltimate) {
 					# Disable wake functionality via powercfg
 					# powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
 					Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -RedirectStandardOutput $null -RedirectStandardError $null -NoNewWindow -Wait
+					
+					# === Disable NetBIOS and LMHOSTS ===
+                    $ifIndex = $adapter.InterfaceIndex
+
+                    # Disable NetBIOS over TCP/IP (best method)
+                    $nbtPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces\tcpip$ifIndex"
+                    if (Test-Path $nbtPath) {
+                        Set-ItemProperty -Path $nbtPath -Name "NetbiosOptions" -Value 2 -Type DWord -Force
+                    } else {
+                        # Fallback using WMI
+                        $wmi = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter "InterfaceIndex = $ifIndex" -ErrorAction SilentlyContinue
+                        if ($wmi) { $wmi.SetTcpNetbios(2) | Out-Null }
+                    }
+
+                    # Global disable of LMHOSTS lookup
+                    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
+
+                    Write-Host "  NetBIOS and LMHOSTS disabled for $($adapter.Name)" -ForegroundColor DarkGray
 				}
 				Write-Host "  Network power settings for $($adapter.Name) set." -ForegroundColor Cyan
 			}
@@ -731,7 +749,7 @@ if ($setPowerPlanUltimate) {
 #  FORCE DISABLE BITLOCKER
 # ========================
 if ($forceDisableBitlocker) {
-	Write-Host "[Status]: Disabling BitLocker..." -ForegroundColor White -BackgroundColor Blue
+	Write-Host "Disabling BitLocker..." -ForegroundColor White -BackgroundColor Blue
 	try {
         $volumes = Get-BitLockerVolume
         $needsAction = $false
@@ -789,7 +807,7 @@ if ($forceDisableBitlocker) {
 #  FILE EXPLORER, DESKTOP, TASKBAR AND OTHER MISC STUFF...
 # ========================
 if ($tweakGeneralExplorerAndOther) {
-    Write-Host "[Status]: Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Configuring File Explorer, Desktop, Taskbar and other misc stuff..." -ForegroundColor White -BackgroundColor Blue
 
     # Basic Explorer tweaks
 	Write-Host "  Configuring file explorer settings..." -ForegroundColor Cyan
@@ -977,7 +995,7 @@ if ($installapps -match '^[Yy]$') {
 #  INSTALL ESSENTIAL APPS
 # ========================
 if ($installapps) {
-    Write-Host "[Status]: Installing new apps..." -ForegroundColor White -BackgroundColor Blue
+    Write-Host "Installing new apps..." -ForegroundColor White -BackgroundColor Blue
 
     # List of apps to install
     $apps = @(
