@@ -678,42 +678,43 @@ if ($setPowerPlanUltimate) {
 
 	Write-Host "  Changing power settings for network adapters..." -ForegroundColor Cyan
 
-	# Get all network adapters, including hidden or disabled.
-	$netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
-	
-	# Asks the user if they wanna use DNS servers.
-	$setDnsYes = $false
-	$setDns = Read-Host "Set Quad9 (9.9.9.9 - https://quad9.net/) and Cloudflare (1.1.1.1 - https://www.cloudflare.com) DNS Servers? [Y/N]: "
-	if ($setDns -match '^[Yy]$') {
-		$setDnsYes = $true
-	} else { 
-		$setDnsYes = $false
-	}
+    # Get all network adapters (including hidden ones)
+    $netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
-	foreach ($adapter in $netAdapters) {
-    Write-Host "  Changing network power settings for $($adapter.Name)" -ForegroundColor Cyan
+    # Ask about DNS servers
+    $setDnsYes = $false
+    $setDns = Read-Host "Set Quad9 (9.9.9.9) and Cloudflare (1.1.1.1) DNS Servers? [Y/N]: "
+    if ($setDns -match '^[Yy]$') {
+        $setDnsYes = $true
+    }
 
-		try {
-			$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
-			$subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
+    foreach ($adapter in $netAdapters) {
+        Write-Host "  Processing network adapter: $($adapter.Name)" -ForegroundColor Cyan
 
-			foreach ($key in $subKeys) {
-				$driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
-				if ($driverDesc -eq $adapter.InterfaceDescription) {
+        try {
+            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
+            $subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
 
-					# Disable "Allow computer to turn off this device to save power"
-					Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force -ErrorAction SilentlyContinue
+            foreach ($key in $subKeys) {
+                $driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
 
-					# Disable "Only allow a magic packet to wake the computer"
-					if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
-						Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-					}
+                if ($driverDesc -eq $adapter.InterfaceDescription) {
 
-					# Disable wake functionality via powercfg
-					# powercfg /devicedisablewake "$($adapter.Name)" | Out-Null
-					Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -RedirectStandardOutput $null -RedirectStandardError $null -NoNewWindow -Wait
-					
-					# === Disable NetBIOS and LMHOSTS ===
+                    # === Power Management Settings ===
+                    # Disable "Allow the computer to turn off this device to save power"
+                    Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force -ErrorAction SilentlyContinue
+
+                    # Disable "Only allow a magic packet to wake the computer"
+                    if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+                    }
+
+                    # Disable wake via powercfg
+                    Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -NoNewWindow -Wait
+
+                    Write-Host "    Power settings applied for $($adapter.Name)" -ForegroundColor DarkGray
+
+                    # === Disable NetBIOS and LMHOSTS ===
                     $ifIndex = $adapter.InterfaceIndex
 
                     # Disable NetBIOS over TCP/IP (best method)
@@ -729,78 +730,27 @@ if ($setPowerPlanUltimate) {
                     # Global disable of LMHOSTS lookup
                     Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
 
-                    Write-Host "  NetBIOS and LMHOSTS disabled for $($adapter.Name)" -ForegroundColor DarkGray
-				}
-				Write-Host "  Network power settings for $($adapter.Name) set." -ForegroundColor Cyan
-			}
-		}
-		catch { <# Write-Host "Failed to update $($adapter.Name): $_" -ForegroundColor Red #> }
-
-		if ($setDnsYes -eq $true) {
-			try {
-				Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-			} catch { Write-Host "  Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Yellow }
-		} else { <# Skips this and does nothing. #> }
-		
-	}
-}
-
-# ========================
-#  FORCE DISABLE BITLOCKER
-# ========================
-if ($forceDisableBitlocker) {
-	Write-Host "Disabling BitLocker..." -ForegroundColor White -BackgroundColor Blue
-	try {
-        $volumes = Get-BitLockerVolume
-        $needsAction = $false
-
-        foreach ($vol in $volumes) {
-            $mount = $vol.MountPoint
-            $status = $vol.VolumeStatus
-            $protection = $vol.ProtectionStatus
-            $percent = $vol.EncryptionPercentage
-
-            Write-Host "Drive $mount - Status: $status, Protection: $protection, Encrypted: $percent%  " -ForegroundColor Cyan
-
-            if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress" -or $protection -eq "On") {
-                $needsAction = $true
-                Write-Host "Drive $mount encrypted. Starting decryption...  " -ForegroundColor Black -BackgroundColor Yellow
-                Disable-BitLocker -MountPoint $mount -ErrorAction Continue
-
-                $protectors = $vol.KeyProtector
-                foreach ($p in $protectors) {
-                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
+                    Write-Host "    NetBIOS and LMHOSTS disabled for $($adapter.Name)" -ForegroundColor DarkGray
                 }
             }
         }
-
-        if (-not $needsAction) {
-            Write-Host "  BitLocker is already off." -ForegroundColor Cyan
-        } else {
-            # Wait for decryption to complete
-            Write-Host "Decrypting drive...  " -ForegroundColor Black -BackgroundColor Yellow
-            do {
-                Start-Sleep -Seconds 30
-                $stillWorking = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
-                if ($stillWorking) {
-                    $percent = $stillWorking[0].EncryptionPercentage
-                    Write-Host "Progress: $percent% remaining on $($stillWorking[0].MountPoint)  " -ForegroundColor Black -BackgroundColor Yellow
-                }
-            } while ($stillWorking)
-
-            Write-Host "  Decryption completed on all drives." -ForegroundColor Cyan
+        catch {
+            Write-Warning "Failed to update $($adapter.Name): $_"
         }
 
-        Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
-        Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
-
-        Write-Host "  BitLocker fully disabled." -ForegroundColor Cyan
-
-        manage-bde -status
+        # === DNS Settings ===
+        if ($setDnsYes -eq $true) {
+            try {
+                Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
+                Write-Host "    DNS set to Quad9 + Cloudflare for $($adapter.Name)" -ForegroundColor DarkGray
+            }
+            catch {
+                Write-Host "    Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        }
     }
-    catch {
-        Write-Error "Error: $_"
-    }
+
+    Write-Host "  Network adapter configuration completed." -ForegroundColor Green
 }
 
 # ========================
@@ -1059,7 +1009,8 @@ if ($installapps) {
 # ========================
 #  END
 # ========================
-Write-Host "`nScript completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor White -BackgroundColor Green
+Write-Host "`n"
+Write-Host "Script completed! Windows needs to restart for all applied settings changes to have full effect!" -ForegroundColor White -BackgroundColor Green
 $restart = Read-Host "Restart your PC now? (Y/N): "
 
 if ($restart -match '^[Yy]$') {
