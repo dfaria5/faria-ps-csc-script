@@ -677,80 +677,61 @@ if ($setPowerPlanUltimate) {
     }
 
 	Write-Host "  Changing power settings for network adapters..." -ForegroundColor Cyan
-
-    # Get all network adapters (including hidden ones)
     $netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
-    # Ask about DNS servers
+    # DNS prompt
     $setDnsYes = $false
     $setDns = Read-Host "Set Quad9 (9.9.9.9) and Cloudflare (1.1.1.1) DNS Servers? [Y/N]: "
-    if ($setDns -match '^[Yy]$') {
-        $setDnsYes = $true
-    }
+    if ($setDns -match '^[Yy]$') { $setDnsYes = $true }
 
     foreach ($adapter in $netAdapters) {
-        Write-Host "  Processing network adapter: $($adapter.Name)" -ForegroundColor Cyan
+        Write-Host "  Processing: $($adapter.Name)" -ForegroundColor Cyan
 
         try {
+            $ifIndex = $adapter.InterfaceIndex
+
+            # 1. Power Management Settings (your original)
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
             $subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
 
             foreach ($key in $subKeys) {
-                $driverDesc = (Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc
-
-                if ($driverDesc -eq $adapter.InterfaceDescription) {
-
-                    # === Power Management Settings ===
-                    # Disable "Allow the computer to turn off this device to save power"
-                    Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force -ErrorAction SilentlyContinue
-
-                    # Disable "Only allow a magic packet to wake the computer"
+                if ((Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc -eq $adapter.InterfaceDescription) {
+                    Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force
                     if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
-                        Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+                        Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force
                     }
-
-                    # Disable wake via powercfg
                     Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -NoNewWindow -Wait
+                }
+            }
 
-                    Write-Host "    Power settings applied for $($adapter.Name)" -ForegroundColor DarkGray
+            # 2. Disable NetBIOS over TCP/IP (this affects the GUI checkbox)
+            $wmi = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter "InterfaceIndex = $ifIndex" -ErrorAction SilentlyContinue
+            if ($wmi) {
+                $result = $wmi.SetTcpNetbios(2)  # 2 = Disable NetBIOS over TCP/IP
+                if ($result.ReturnValue -eq 0) {
+                    Write-Host "    NetBIOS over TCP/IP disabled for $($adapter.Name)" -ForegroundColor DarkGray
+                }
+            }
 
-                    # === Disable NetBIOS and LMHOSTS ===
-                    $ifIndex = $adapter.InterfaceIndex
+            # 3. Disable LMHOSTS lookup globally
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
 
-                    # Disable NetBIOS over TCP/IP (best method)
-                    $nbtPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces\tcpip$ifIndex"
-                    if (Test-Path $nbtPath) {
-                        Set-ItemProperty -Path $nbtPath -Name "NetbiosOptions" -Value 2 -Type DWord -Force
-                    } else {
-                        # Fallback using WMI
-                        $wmi = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter "InterfaceIndex = $ifIndex" -ErrorAction SilentlyContinue
-                        if ($wmi) { $wmi.SetTcpNetbios(2) | Out-Null }
-                    }
-
-                    # Global disable of LMHOSTS lookup
-                    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
-
-                    Write-Host "    NetBIOS and LMHOSTS disabled for $($adapter.Name)" -ForegroundColor DarkGray
+            # 4. DNS Settings
+            if ($setDnsYes) {
+                try {
+                    Set-DnsClientServerAddress -InterfaceIndex $ifIndex -ServerAddresses @("9.9.9.9", "1.1.1.1")
+                    Write-Host "    DNS set to Quad9 + Cloudflare for $($adapter.Name)" -ForegroundColor DarkGray
+                } catch {
+                    Write-Host "    Failed to set DNS for $($adapter.Name)" -ForegroundColor Yellow
                 }
             }
         }
         catch {
-            Write-Warning "Failed to update $($adapter.Name): $_"
-        }
-
-        # === DNS Settings ===
-        if ($setDnsYes -eq $true) {
-            try {
-                Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses @("9.9.9.9", "1.1.1.1") -ErrorAction Stop
-                Write-Host "    DNS set to Quad9 + Cloudflare for $($adapter.Name)" -ForegroundColor DarkGray
-            }
-            catch {
-                Write-Host "    Failed to set DNS for $($adapter.Name): $($_.Exception.Message)" -ForegroundColor Yellow
-            }
+            Write-Warning "Error processing $($adapter.Name): $_"
         }
     }
 
-    Write-Host "  Network adapter configuration completed." -ForegroundColor Green
+    Write-Host "  Network adapter configuration completed (NetBIOS + LMHOSTS disabled)." -ForegroundColor Green
 }
 
 # ========================
