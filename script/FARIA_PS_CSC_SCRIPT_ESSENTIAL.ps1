@@ -677,71 +677,67 @@ if ($setPowerPlanUltimate) {
     }
 
 	Write-Host "  Changing power settings for network adapters..." -ForegroundColor Cyan
+
     $netAdapters = Get-NetAdapter -IncludeHidden -ErrorAction SilentlyContinue
 
-    # DNS prompt
+    # DNS prompt (your existing code)
     $setDnsYes = $false
     $setDns = Read-Host "Set Quad9 (9.9.9.9) and Cloudflare (1.1.1.1) DNS Servers? [Y/N]: "
     if ($setDns -match '^[Yy]$') { $setDnsYes = $true }
 
     foreach ($adapter in $netAdapters) {
-        if ($adapter.Status -eq "Disconnected") { continue }   # Skip disconnected adapters
-
         Write-Host "  Processing: $($adapter.Name)" -ForegroundColor Cyan
 
         try {
             $ifIndex = $adapter.InterfaceIndex
 
-            # 1. Power Management (your original)
+            # === Your existing power management settings ===
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
             $subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
 
             foreach ($key in $subKeys) {
-                if ((Get-ItemProperty -Path $key.PSPath -EA SilentlyContinue).DriverDesc -eq $adapter.InterfaceDescription) {
+                if ((Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc -eq $adapter.InterfaceDescription) {
                     Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force
-                    if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -EA SilentlyContinue) {
+                    if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
                         Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force
                     }
                     Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -NoNewWindow -Wait
                 }
             }
 
-            # 2. DISABLE NETBIOS OVER TCP/IP - Modern & Reliable Method
+            # === DISABLE NETBIOS OVER TCP/IP (Best current method) ===
+            # Method 1: Modern cmdlet
             try {
-                # This is the best modern way
                 Set-NetTCPIPConfiguration -InterfaceIndex $ifIndex -NetbiosOptions 2 -ErrorAction Stop
-                Write-Host "    NetBIOS over TCP/IP disabled for $($adapter.Name)" -ForegroundColor DarkGray
+                Write-Host "    NetBIOS disabled (Set-NetTCPIPConfiguration) for $($adapter.Name)" -ForegroundColor DarkGray
             }
             catch {
-                # Fallback: Direct registry method
+                # Method 2: Direct registry (very reliable)
                 $nbtPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces\tcpip$ifIndex"
-                if (-not (Test-Path $nbtPath)) {
-                    New-Item -Path $nbtPath -Force | Out-Null
-                }
+                if (-not (Test-Path $nbtPath)) { New-Item -Path $nbtPath -Force | Out-Null }
                 Set-ItemProperty -Path $nbtPath -Name "NetbiosOptions" -Value 2 -Type DWord -Force
                 Write-Host "    NetBIOS disabled via registry for $($adapter.Name)" -ForegroundColor DarkGray
             }
 
-            # 3. Disable LMHOSTS lookup (global)
+            # === Disable LMHOSTS lookup (global) ===
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
 
-            # 4. DNS Settings
+            # === DNS Settings ===
             if ($setDnsYes) {
                 try {
                     Set-DnsClientServerAddress -InterfaceIndex $ifIndex -ServerAddresses @("9.9.9.9", "1.1.1.1")
-                    Write-Host "    DNS set to Quad9 + Cloudflare" -ForegroundColor DarkGray
+                    Write-Host "    DNS set successfully" -ForegroundColor DarkGray
                 } catch {
                     Write-Host "    Failed to set DNS for $($adapter.Name)" -ForegroundColor Yellow
                 }
             }
-
         }
         catch {
             Write-Warning "Error processing $($adapter.Name): $_"
         }
     }
 
-    Write-Host "  Network adapter configuration completed (NetBIOS + LMHOSTS disabled)." -ForegroundColor Green
+    Write-Host "  Network configuration completed (NetBIOS + LMHOSTS disabled)." -ForegroundColor Green
 }
 
 # ========================
