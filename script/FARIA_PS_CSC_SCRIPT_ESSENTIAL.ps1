@@ -685,46 +685,56 @@ if ($setPowerPlanUltimate) {
     if ($setDns -match '^[Yy]$') { $setDnsYes = $true }
 
     foreach ($adapter in $netAdapters) {
+        if ($adapter.Status -eq "Disconnected") { continue }   # Skip disconnected adapters
+
         Write-Host "  Processing: $($adapter.Name)" -ForegroundColor Cyan
 
         try {
             $ifIndex = $adapter.InterfaceIndex
 
-            # 1. Power Management Settings (your original)
+            # 1. Power Management (your original)
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}"
             $subKeys = Get-ChildItem $regPath -ErrorAction SilentlyContinue
 
             foreach ($key in $subKeys) {
-                if ((Get-ItemProperty -Path $key.PSPath -ErrorAction SilentlyContinue).DriverDesc -eq $adapter.InterfaceDescription) {
+                if ((Get-ItemProperty -Path $key.PSPath -EA SilentlyContinue).DriverDesc -eq $adapter.InterfaceDescription) {
                     Set-ItemProperty -Path $key.PSPath -Name "PnPCapabilities" -Value 24 -Type DWord -Force
-                    if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -ErrorAction SilentlyContinue) {
+                    if (Get-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -EA SilentlyContinue) {
                         Set-ItemProperty -Path $key.PSPath -Name "WakeOnMagicPacket" -Value 0 -Type DWord -Force
                     }
                     Start-Process -FilePath "powercfg.exe" -ArgumentList "/devicedisablewake", "$($adapter.Name)" -WindowStyle Hidden -NoNewWindow -Wait
                 }
             }
 
-            # 2. Disable NetBIOS over TCP/IP (this affects the GUI checkbox)
-            $wmi = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter "InterfaceIndex = $ifIndex" -ErrorAction SilentlyContinue
-            if ($wmi) {
-                $result = $wmi.SetTcpNetbios(2)  # 2 = Disable NetBIOS over TCP/IP
-                if ($result.ReturnValue -eq 0) {
-                    Write-Host "    NetBIOS over TCP/IP disabled for $($adapter.Name)" -ForegroundColor DarkGray
+            # 2. DISABLE NETBIOS OVER TCP/IP - Modern & Reliable Method
+            try {
+                # This is the best modern way
+                Set-NetTCPIPConfiguration -InterfaceIndex $ifIndex -NetbiosOptions 2 -ErrorAction Stop
+                Write-Host "    NetBIOS over TCP/IP disabled for $($adapter.Name)" -ForegroundColor DarkGray
+            }
+            catch {
+                # Fallback: Direct registry method
+                $nbtPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters\Interfaces\tcpip$ifIndex"
+                if (-not (Test-Path $nbtPath)) {
+                    New-Item -Path $nbtPath -Force | Out-Null
                 }
+                Set-ItemProperty -Path $nbtPath -Name "NetbiosOptions" -Value 2 -Type DWord -Force
+                Write-Host "    NetBIOS disabled via registry for $($adapter.Name)" -ForegroundColor DarkGray
             }
 
-            # 3. Disable LMHOSTS lookup globally
+            # 3. Disable LMHOSTS lookup (global)
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters" -Name "EnableLMHOSTS" -Value 0 -Type DWord -Force
 
             # 4. DNS Settings
             if ($setDnsYes) {
                 try {
                     Set-DnsClientServerAddress -InterfaceIndex $ifIndex -ServerAddresses @("9.9.9.9", "1.1.1.1")
-                    Write-Host "    DNS set to Quad9 + Cloudflare for $($adapter.Name)" -ForegroundColor DarkGray
+                    Write-Host "    DNS set to Quad9 + Cloudflare" -ForegroundColor DarkGray
                 } catch {
                     Write-Host "    Failed to set DNS for $($adapter.Name)" -ForegroundColor Yellow
                 }
             }
+
         }
         catch {
             Write-Warning "Error processing $($adapter.Name): $_"
