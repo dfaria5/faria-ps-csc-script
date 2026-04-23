@@ -46,14 +46,14 @@ if (-not $IsAdmin) {
 }
 
 # ========================
-#  CONFIGURATION
+#  CONFIGURATION TWEAKS
 # ========================
 $removeApps						= $true
+$setPowerPlanUltimate     		= $true
+$tweakGeneralExplorerAndOther	= $true
 $disableTelemetry				= $true
 $manageServices  				= $true
-$setPowerPlanUltimate     		= $true
 $forceDisableBitlocker			= $true
-$tweakGeneralExplorerAndOther	= $true
 $installapps					= $false
 
 # Detect Windows build information
@@ -96,6 +96,8 @@ $ErrorActionPreference = "SilentlyContinue"
 # ========================
 if ($removeApps) {
     Write-Host "Uninstalling unwanted/bloat apps..." -ForegroundColor White -BackgroundColor Blue
+
+	$ProgressPreference = 'SilentlyContinue'
 
     $apps = @(
         "Microsoft.3DBuilder",
@@ -144,25 +146,28 @@ if ($removeApps) {
     foreach ($app in $apps) {
         Write-Host "  Removing $app..." -ForegroundColor Cyan
 
-		Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq $app } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Out-Null
+		# Remove provisioned (prevents reinstall for new users)
+        Get-AppxProvisionedPackage -Online | 
+            Where-Object { $_.DisplayName -eq $app -or $_.PackageName -like "*$app*" } | 
+            Remove-AppxProvisionedPackage -Online -AllUsers -ErrorAction SilentlyContinue | Out-Null
 
-		Get-AppxPackage -Name $app | Remove-AppxPackage -ErrorAction SilentlyContinue | Out-Null
+        # Remove installed for current + all users
+        Get-AppxPackage -AllUsers -Name "*$app*" | 
+            Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue | Out-Null
     }
 
-	# Remove any leftovers.
-	Write-Host "  Removing any leftovers from bloat apps..." -ForegroundColor Cyan
-	# Microsoft Teams
-    Get-AppxPackage -AllUsers -Name "MSTeams" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    Get-AppxPackage -AllUsers -Name "MicrosoftTeams" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    Get-AppxPackage -AllUsers -Name "MicrosoftTeamsIntegration" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*Teams*" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
-    $teamsMachine = "$env:ProgramFiles (x86)\Teams Installer"
-    if (Test-Path $teamsMachine) {
-        Remove-Item $teamsMachine -Recurse -Force -ErrorAction SilentlyContinue
-    }
-	# Linkedin
-	Get-AppxPackage -AllUsers -Name "LinkedInforWindows" -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*LinkedIn*" } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
+	# Extra cleanup for stubborn apps
+    Write-Host "  Removing any leftovers from bloat apps..." -ForegroundColor Cyan
+
+    # Microsoft Teams cleanup
+    Get-AppxPackage -AllUsers "*Teams*" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+    Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*Teams*" } | Remove-AppxProvisionedPackage -Online -AllUsers -ErrorAction SilentlyContinue
+
+    # LinkedIn cleanup
+    Get-AppxPackage -AllUsers "*LinkedIn*" | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+    Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -like "*LinkedIn*" } | Remove-AppxProvisionedPackage -Online -AllUsers -ErrorAction SilentlyContinue
+
+    $ProgressPreference = 'Continue'
 
 	# OneDrive
 	Write-Host "  Checking for OneDrive installation..." -ForegroundColor Cyan
@@ -245,332 +250,6 @@ if ($removeApps) {
     else {
         Write-Host "  OneDrive is not installed. Skipping..." -ForegroundColor Cyan
     }
-}
-
-# ========================
-#  DISABLE TELEMETRY
-# ========================
-if ($disableTelemetry) {
-    Write-Host "Disabling Microsoft Telemetry & Cortana..." -ForegroundColor White -BackgroundColor Blue
-    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name AllowTelemetry -Value 0 -Type DWord
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name Enabled -Value 0
-    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Value 0
-	Write-Host "  Microsoft Telemtry & Cortana disabled." -ForegroundColor Cyan
-}
-
-# ========================
-#  OPTIMIZING SERVICES
-# ========================
-if ($manageServices) {
-    Write-Host "Optimizing services..." -ForegroundColor White -BackgroundColor Blue
-
-	# Because of the issue before where Start Menu on Windows 11 would take up to a minute or more to start
-	$autoServices = @(
-		"Spooler",
-		"WlanSvc",
-		"LanmanServer",
-		"LanmanWorkstation",
-		"EventLog",
-		"AudioSrv",
-		"AudioEndpointBuilder",
-		"ProfSvc",
-		"AppReadiness",
-		"AppXSvc",
-		"ClipSVC",
-		"DispBrokerDesktopSvc",
-		"ShellHWDetection",
-		"Themes",
-		"WpnService",
-		"WpnUserService_*",
-		"CDPSvc",
-		"CDPUserSvc_*",
-		"UserDataSvc_*",
-		"UnistoreSvc_*",
-		"tiledatamodelsvc",
-		"TimeBrokerSvc",
-		"DcomLaunch",
-		"WSearch"
-	)
-
-    $manualServices = @(
-		"uhssvc",
-		"SysMain",
-		"TrkWks",
-		"wercplsupport",
-		"BthAvctpSvc",
-		"tcsd",
-		"CldFlt",
-		"CDPUserSvc*",
-		"PimIndexMaintenanceSvc*",
-		"Netlogon",
-		"PrintWorkflowUserSvc*",
-		"TermService",
-		"shpamsvc",
-		"sdclt",
-		"WwanSvc",
-        "ALG",
-		"AppIDSvc",
-		"AppMgmt",
-		"Appinfo",
-		"AxInstSV",
-		"BDESVC",
-		"BFE",
-		"BcastDVRUserService_*",
-		"BluetoothUserService_*",
-        "Browser",
-		"BthHFSrv",
-		"COMSysApp",
-		"CaptureService_*",
-		"CertPropSvc",
-		"ConsentUxUserSvc_*",
-		"CoreMessagingRegistrar",
-		"CredentialEnrollmentManagerUserSvc_*",
-        "CryptSvc",
-		"CscService",
-		"DPS",
-		"DcpSvc",
-		"DevQueryBroker",
-		"DeviceAssociationBrokerSvc_*",
-        "DeviceAssociationService",
-		"DeviceInstall",
-		"DevicePickerUserSvc_*",
-		"DevicesFlowUserSvc_*",
-		"Dhcp",
-		"DisplayEnhancementService",
-		"DmEnrollmentSvc",
-		"EFS",
-		"EapHost",
-		"EntAppSvc",
-		"EventSystem",
-		"FDResPub",
-		"FontCache",
-		"FrameServer",
-		"FrameServerMonitor",
-		"GraphicsPerfSvc",
-        "HomeGroupListener",
-		"HomeGroupProvider",
-		"HvHost",
-		"IEEtwCollectorService",
-		"IKEEXT",
-		"InstallService",
-        "InventorySvc",
-		"IpxlatCfgSvc",
-		"KtmRm",
-		"LicenseManager",
-		"LxpSvc",
-		"MSDTC",
-		"MSiSCSI",
-        "McpManagementService",
-		"MicrosoftEdgeElevationService",
-		"MixedRealityOpenXRSvc",
-		"MsKeyboardFilter",
-        "NaturalAuthentication",
-		"NcaSvc",
-		"NcbService",
-		"NcdAutoSetup",
-		"NetSetupSvc",
-		"Netman",
-		"NgcCtnrSvc",
-        "NgcSvc",
-		"P9RdrService_*",
-		"PNRPAutoReg",
-		"PNRPsvc",
-		"PeerDistSvc",
-		"PenService_*",
-		"PerfHost",
-        "PimIndexMaintenanceSvc_*",
-		"PlugPlay",
-		"PolicyAgent",
-		"PrintWorkflowUserSvc_*",
-		"PushToInstall",
-        "QWAVE",
-		"RasAuto",
-		"RasMan",
-		"RmSvc",
-		"RpcLocator",
-		"SCPolicySvc",
-		"SCardSvr",
-		"SDRSVC",
-		"SEMgrSvc",
-        "SNMPTRAP",
-		"SNMPTrap",
-		"ScDeviceEnum",
-		"Schedule",
-		"Sense",
-		"SensorDataService",
-		"SensorService",
-        "SensrSvc",
-		"SessionEnv",
-		"SharedRealitySvc",
-		"SmsRouter",
-		"SstpSvc",
-		"StiSvc",
-        "StorSvc",
-		"TapiSrv",
-		"TieringEngineService",
-		"TimeBroker",
-		"TokenBroker",
-        "TroubleshootingSvc",
-		"TrustedInstaller",
-		"UI0Detect",
-		"UdkUserSvc_*",
-		"UmRdpService",
-		"UsoSvc",
-		"VSS",
-		"VacSvc",
-		"W32Time",
-		"WFDSConMgrSvc",
-		"WManSvc",
-		"WPDBusEnum",
-		"WSService",
-        "WaaSMedicSvc",
-		"WarpJITSvc",
-		"WbioSrvc",
-		"WcsPlugInService",
-		"WdNisSvc",
-		"WdiServiceHost",
-		"WdiSystemHost",
-        "WebClient",
-		"Wecsvc",
-		"WerSvc",
-		"WiaRpc",
-		"WinHttpAutoProxySvc",
-		"WinRM",
-		"WpcMonSvc",
-		"XblAuthManager",
-        "XblGameSave",
-		"XboxGipSvc",
-		"XboxNetApiSvc",
-		"autotimesvc",
-		"bthserv",
-		"camsvc",
-		"cloudidsvc",
-		"dcsvc",
-        "defragsvc",
-		"diagnosticshub.standardcollector.service",
-		"diagsvc",
-		"dot3svc",
-		"edgeupdate",
-		"edgeupdatem",
-        "embeddedmode",
-		"fdPHost",
-		"fhsvc",
-		"hidserv",
-		"icssvc",
-		"lfsvc",
-		"lltdsvc",
-		"lmhosts",
-		"msiserver",
-		"netprofm",
-        "p2pimsvc",
-		"p2psvc",
-		"perceptionsimulation",
-		"pla",
-		"seclogon",
-		"smphost",
-		"spectrum",
-		"svsvc",
-		"swprv",
-		"upnphost",
-		"vds",
-		"vm3dservice",
-		"vmicguestinterface",
-		"vmicheartbeat",
-		"vmickvpexchange",
-        "vmicrdv",
-		"vmicshutdown",
-		"vmictimesync",
-		"vmicvmsession",
-		"vmicvss",
-		"wbengine",
-		"wcncsvc",
-		"webthreatdefsvc",
-        "wlidsvc",
-		"wlpasvc",
-		"wmiApSrv",
-		"workfolderssvc",
-		"wuauserv",
-		"wudfsvc"
-    )
-
-    $disableServices = @(
-		"DiagTrack",
-		"dmwappushservice",
-		"RetailDemo",
-		"WMPNetworkSvc",
-		"Fax",
-		"MapsBroker",
-		"MessagingService",
-		"PhoneSvc",
-		"PrintNotify",
-		"WalletService",
-		"wisvc",
-		"AJRouter",
-		"AppVClient",
-		"AssignedAccessManagerSvc",
-		"BTAGService",
-		"DialogBlockingService",
-        "NetTcpPortSharing",
-		"UevAgentService",
-		"ssh-agent",
-		"tzautoupdate",
-		"WebClient",
-		"edgeupdate",
-		"edgeupdatem"
-    )
-
-	# "WinRM",					# Windows Remote Management
-	# "RemoteAccess",			# Routing and Remote Access
-	# "RemoteRegistry",			# Security risk
-	# "SharedAccess",			# Internet Connection Sharing
-
-	foreach ($svc in $autoServices) {
-        try {
-            Set-Service -Name $svc -StartupType Automatic -ErrorAction Stop
-            Write-Host "  Set $svc to Auto Start" -ForegroundColor Cyan
-        } catch {
-            try {
-                sc.exe config $svc start= delayed-auto | Out-Null
-                Write-Host "  Set $svc to Auto Start Delayed (via sc.exe)" -ForegroundColor Cyan
-            } catch {
-                Write-Warning "Could not change $svc ($_)" 
-            }
-        }
-    }
-
-    foreach ($svc in $manualServices) {
-        try {
-            Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
-            Write-Host "  Set $svc to Manual" -ForegroundColor Cyan
-        } catch {
-            try {
-                sc.exe config $svc start= demand | Out-Null
-                Write-Host "  Set $svc to Manual (via sc.exe)" -ForegroundColor Cyan
-            } catch {
-                Write-Warning "Could not change $svc ($_)" 
-            }
-        }
-    }
-
-    foreach ($svc in $disableServices) {
-        try {
-            Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
-            Write-Host "  Set $svc to Disabled" -ForegroundColor Cyan
-        } catch {
-            try {
-                sc.exe config $svc start= disabled | Out-Null
-                Write-Host "  Set $svc to Disabled (via sc.exe)" -ForegroundColor Cyan
-            } catch {
-                Write-Warning "Could not change $svc ($_)" 
-            }
-        }
-    }
-	
-	Write-Host "  All services optimized and set." -ForegroundColor Cyan
 }
 
 # ========================
@@ -915,9 +594,204 @@ if ($tweakGeneralExplorerAndOther) {
 }
 
 # ========================
-# Remove ALL pinned apps from Start Menu (Windows 10 only)
+#  DISABLE TELEMETRY
 # ========================
+if ($disableTelemetry) {
+    Write-Host "Disabling Microsoft Telemetry & Cortana..." -ForegroundColor White -BackgroundColor Blue
+    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name AllowTelemetry -Value 0 -Type DWord
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name Enabled -Value 0
+    New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Value 0
+	Write-Host "  Microsoft Telemtry & Cortana disabled." -ForegroundColor Cyan
+}
 
+# ========================
+#  OPTIMIZING SERVICES
+# ========================
+if ($manageServices) {
+    Write-Host "Optimizing services..." -ForegroundColor White -BackgroundColor Blue
+
+	$autoServices = @(
+		"Spooler",
+		"WlanSvc",
+		"LanmanServer",
+		"LanmanWorkstation",
+		"EventLog",
+		"AudioSrv",
+		"AudioEndpointBuilder",
+		"ProfSvc",
+		"AppReadiness",
+		"ShellHWDetection",
+		"Themes",
+		"DcomLaunch",
+		"W32Time",
+		"Dhcp",
+		"Dnscache",
+		"NlaSvc",
+		"StateRepository",
+		"UserManager",
+		"SamSs",
+		"LSM",
+		"PlugPlay"
+	)
+
+    $manualServices = @(
+		"SysMain",
+		"TrkWks",
+		"WSearch",
+		"WerSvc",
+		"BthAvctpSvc",
+		"bthserv",
+		"BluetoothUserService_*",
+		"PrintWorkflowUserSvc_*",
+		"DeviceAssociationService",
+		"DeviceInstall",
+		"WdiServiceHost",
+		"WdiSystemHost",
+		"WinHttpAutoProxySvc",
+		"FDResPub",
+		"SSDPSRV",
+		"upnphost",
+		"RasMan",
+		"RasAuto",
+		"RemoteRegistry",
+		"TermService",
+		"UsoSvc",
+		"BITS",
+		"DoSvc",
+		"WaaSMedicSvc"
+	)
+
+    $disableServices = @(
+		"DiagTrack",
+		"dmwappushservice",
+		"RetailDemo",
+		"WMPNetworkSvc",
+		"Fax",
+		"MapsBroker",
+		"PhoneSvc",
+		"WalletService",
+		"MessagingService",
+		"XblAuthManager",
+		"XblGameSave",
+		"XboxGipSvc",
+		"XboxNetApiSvc",
+		"WerSvc",
+		"edgeupdate",
+		"edgeupdatem",
+		"WpcMonSvc",
+		"ParentalControls",
+		"RetailDemo",
+		"RemoteRegistry",
+		"SharedAccess",
+		"WerSvc"
+	)
+
+	foreach ($svc in $autoServices) {
+        try {
+            Set-Service -Name $svc -StartupType Automatic -ErrorAction Stop
+            Write-Host "  Set $svc to Auto Start" -ForegroundColor Cyan
+        } catch {
+            try {
+                sc.exe config $svc start= delayed-auto | Out-Null
+                Write-Host "  Set $svc to Auto Start Delayed (via sc.exe)" -ForegroundColor Cyan
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
+        }
+    }
+
+    foreach ($svc in $manualServices) {
+        try {
+            Set-Service -Name $svc -StartupType Manual -ErrorAction Stop
+            Write-Host "  Set $svc to Manual" -ForegroundColor Cyan
+        } catch {
+            try {
+                sc.exe config $svc start= demand | Out-Null
+                Write-Host "  Set $svc to Manual (via sc.exe)" -ForegroundColor Cyan
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
+        }
+    }
+
+    foreach ($svc in $disableServices) {
+        try {
+            Set-Service -Name $svc -StartupType Disabled -ErrorAction Stop
+            Write-Host "  Set $svc to Disabled" -ForegroundColor Cyan
+        } catch {
+            try {
+                sc.exe config $svc start= disabled | Out-Null
+                Write-Host "  Set $svc to Disabled (via sc.exe)" -ForegroundColor Cyan
+            } catch {
+                Write-Warning "Could not change $svc ($_)" 
+            }
+        }
+    }
+	
+	Write-Host "  All services optimized and set." -ForegroundColor Cyan
+}
+
+# ========================
+#  FORCE DISABLE BITLOCKER
+# ========================
+if ($forceDisableBitlocker) {
+	Write-Host "[Status]: Disabling BitLocker..." -ForegroundColor White -BackgroundColor Blue
+	try {
+        $volumes = Get-BitLockerVolume
+        $needsAction = $false
+
+        foreach ($vol in $volumes) {
+            $mount = $vol.MountPoint
+            $status = $vol.VolumeStatus
+            $protection = $vol.ProtectionStatus
+            $percent = $vol.EncryptionPercentage
+
+            Write-Host "Drive $mount - Status: $status, Protection: $protection, Encrypted: $percent%  " -ForegroundColor Cyan
+
+            if ($status -eq "FullyEncrypted" -or $status -eq "EncryptionInProgress" -or $protection -eq "On") {
+                $needsAction = $true
+                Write-Host "Drive $mount encrypted. Starting decryption...  " -ForegroundColor Black -BackgroundColor Yellow
+                Disable-BitLocker -MountPoint $mount -ErrorAction Continue
+
+                $protectors = $vol.KeyProtector
+                foreach ($p in $protectors) {
+                    Remove-BitLockerKeyProtector -MountPoint $mount -KeyProtectorId $p.KeyProtectorId -ErrorAction Continue
+                }
+            }
+        }
+
+        if (-not $needsAction) {
+            Write-Host "  BitLocker is already off." -ForegroundColor Cyan
+        } else {
+            # Wait for decryption to complete
+            Write-Host "Decrypting drive...  " -ForegroundColor Black -BackgroundColor Yellow
+            do {
+                Start-Sleep -Seconds 30
+                $stillWorking = Get-BitLockerVolume | Where-Object { $_.VolumeStatus -eq "DecryptionInProgress" -or $_.VolumeStatus -eq "FullyEncrypted" }
+                if ($stillWorking) {
+                    $percent = $stillWorking[0].EncryptionPercentage
+                    Write-Host "Progress: $percent% remaining on $($stillWorking[0].MountPoint)  " -ForegroundColor Black -BackgroundColor Yellow
+                }
+            } while ($stillWorking)
+
+            Write-Host "  Decryption completed on all drives." -ForegroundColor Cyan
+        }
+
+        Set-Service -Name "defragsvc" -StartupType Disabled -ErrorAction Continue
+        Stop-Service -Name "defragsvc" -Force -ErrorAction Continue
+
+        Write-Host "  BitLocker fully disabled." -ForegroundColor Cyan
+
+        manage-bde -status
+    }
+    catch {
+        Write-Error "Error: $_"
+    }
+}
 
 # ?? ASK USER
 # ?? INSTALL APPS
