@@ -642,6 +642,7 @@ if ($manageServices) {
 		"SysMain",
 		"TrkWks",
 		"WSearch",
+        "PrintNotify",
 		"WerSvc",
 		"BthAvctpSvc",
 		"bthserv",
@@ -662,7 +663,14 @@ if ($manageServices) {
 		"UsoSvc",
 		"BITS",
 		"DoSvc",
-		"WaaSMedicSvc"
+		"WaaSMedicSvc",
+        "edgeupdate",
+		"edgeupdatem",
+        "Fax",
+        "XblAuthManager",
+		"XblGameSave",
+		"XboxGipSvc",
+		"XboxNetApiSvc"
 	)
 
     $disableServices = @(
@@ -670,24 +678,14 @@ if ($manageServices) {
 		"dmwappushservice",
 		"RetailDemo",
 		"WMPNetworkSvc",
-		"Fax",
 		"MapsBroker",
 		"PhoneSvc",
 		"WalletService",
 		"MessagingService",
-		"XblAuthManager",
-		"XblGameSave",
-		"XboxGipSvc",
-		"XboxNetApiSvc",
-		"WerSvc",
-		"edgeupdate",
-		"edgeupdatem",
 		"WpcMonSvc",
 		"ParentalControls",
 		"RetailDemo",
-		"RemoteRegistry",
-		"SharedAccess",
-		"WerSvc"
+		"SharedAccess"
 	)
 
 	foreach ($svc in $autoServices) {
